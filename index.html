@@ -1,0 +1,2644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CanIFish - Water Conditions Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .site-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .category-filters {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .filters-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .filters-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 8px 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid #667eea;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filters-toggle-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .temp-unit-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 8px 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid #667eea;
+        }
+
+        .temp-unit-label {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .temp-toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .temp-toggle-switch.fahrenheit {
+            background: #667eea;
+        }
+
+        .temp-toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .temp-toggle-switch.fahrenheit .temp-toggle-slider {
+            transform: translateX(26px);
+        }
+
+        .temp-unit-text {
+            font-size: 0.8rem;
+            font-weight: bold;
+            min-width: 15px;
+        }
+
+        .summary-cards-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .summary-cards-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .summary-cards-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .summary-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 8px 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid #667eea;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .summary-toggle-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .data-tables-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .data-tables-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .data-tables-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .data-tables-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 8px 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid #667eea;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .data-tables-toggle-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .usace-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .usace-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 8px 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 2px solid #667eea;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .usace-toggle-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .filters-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .filters-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
+        .filters-content.expanded {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        .filter-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .filter-btn {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            color: #495057;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #e9ecef;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .category-toggles {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .category-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 25px;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .category-toggle:hover {
+            background: #e9ecef;
+        }
+
+        .category-toggle.active {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .category-toggle.demo {
+            border-color: #e74c3c;
+            color: #c0392b;
+        }
+
+        .category-toggle.demo.active {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: #e74c3c;
+        }
+
+        .toggle-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            border: 2px solid #dee2e6;
+            background: white;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .toggle-checkbox.checked {
+            background: #667eea;
+            border-color: #667eea;
+        }
+
+        .toggle-checkbox.checked.demo {
+            background: #e74c3c;
+            border-color: #e74c3c;
+        }
+
+        .toggle-checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 2px;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn.active {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .period-select {
+            padding: 10px 15px;
+            border-radius: 20px;
+            border: 2px solid #667eea;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .data-table.demo th {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .data-table.demo tr:hover {
+            background-color: #ffe6e6;
+        }
+
+        .summary-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .summary-card.demo {
+            background: rgba(255, 230, 230, 0.95);
+            border-left: 4px solid #e74c3c;
+        }
+
+        .summary-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .summary-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .summary-title.demo {
+            color: #c0392b;
+        }
+
+        .latest-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .latest-value.demo {
+            color: #c0392b;
+        }
+
+        .time-since {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .trend-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+        }
+
+        .trend-arrow {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .trend-up {
+            color: #e74c3c;
+        }
+
+        .trend-down {
+            color: #27ae60;
+        }
+
+        .trend-stable {
+            color: #f39c12;
+        }
+
+        .trend-text {
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .rate-of-change {
+            font-size: 0.75rem;
+            margin-top: 3px;
+            font-weight: normal;
+        }
+
+        .dam-summary-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .dam-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .dam-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .dam-current-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .dam-status-info {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .dam-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 200px;
+        }
+
+        .dam-changes-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .dam-status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .dam-next-change {
+            font-size: 0.75rem;
+            text-align: center;
+            color: #666;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .dam-previous-change {
+            font-size: 0.75rem;
+            text-align: center;
+            color: #666;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .usace-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .usace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .usace-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .usace-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .generation-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .status-base {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            border: 2px solid #28a745;
+        }
+
+        .status-peak {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            border: 2px solid #dc3545;
+        }
+
+        .status-intermediate {
+            background: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+            border: 2px solid #ffc107;
+        }
+
+        .generation-tables {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .day-table-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .day-date {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+
+        .generation-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .generation-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .generation-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .generation-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .generation-table tr.current-hour {
+            background-color: rgba(102, 126, 234, 0.1);
+            font-weight: bold;
+        }
+
+        .generation-table tr.current-hour td {
+            border-left: 4px solid #667eea;
+        }
+
+        .status-cell {
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .status-cell.base {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .status-cell.peak {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .status-cell.intermediate {
+            background: rgba(255, 193, 7, 0.1);
+            color: #856404;
+        }
+
+        .mw-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .usace-info {
+            background: rgba(23, 162, 184, 0.1);
+            border: 1px solid #17a2b8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .usace-info h4 {
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        .legal-disclaimer {
+            background: rgba(248, 249, 250, 0.95);
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0 0 0;
+            font-size: 0.85rem;
+            color: #495057;
+            line-height: 1.4;
+        }
+
+        .legal-disclaimer p {
+            margin: 0;
+        }
+
+        .legal-disclaimer strong {
+            color: #212529;
+        }
+
+        /* Custom tooltip styling */
+        [title] {
+            position: relative;
+            text-transform: none;
+        }
+
+        [title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            animation: tooltipFadeIn 0.2s ease-out forwards;
+        }
+
+        [title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            animation: tooltipFadeIn 0.2s ease-out forwards;
+        }
+
+        @keyframes tooltipFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Responsive tooltip positioning */
+        @media (max-width: 768px) {
+            [title]:hover::after {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+                max-width: 200px;
+                white-space: normal;
+                word-wrap: break-word;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .summary-cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .summary-info {
+                min-width: auto;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎣 Can I Fish</h1>
+            <p>Real-time Water Conditions Dashboard</p>
+        </div>
+
+        <div class="site-info">
+            <h2>Buford Dam and Chattahoochee River near Norcross, GA</h2>
+            <p><strong>USGS Site:</strong> <a target="_blank" href="https://dashboard.waterdata.usgs.gov/api/gwis/2.1.1/service/site?agencyCode=USGS&siteNumber=02335000&open=39509">02335000</a></p>
+            <p><strong>USACE:</strong> <a target="_blank" href="https://spatialdata.usace.army.mil/hydropower/">Buford Dam/Lake Sidney Lanier</a> | Buford Dam – Water Release information 770-945-1466</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="loadWaterData()">🔄 Refresh Data</button>
+            <select class="period-select" id="period-select" onchange="changePeriod()">
+                <option value="PT3H" selected>Last 3 Hours</option>
+                <option value="PT6H">Last 6 Hours</option>
+                <option value="PT12H">Last 12 Hours</option>
+                <option value="P1D">Last 24 Hours</option>
+                <option value="P3D">Last 3 Days</option>
+                <option value="P7D">Last 7 Days</option>
+                <option value="P30D">Last 30 Days</option>
+            </select>
+            <div class="temp-unit-toggle">
+                <span class="temp-unit-label">🌡️</span>
+                <span class="temp-unit-text">°C</span>
+                <div class="temp-toggle-switch fahrenheit" id="temp-toggle" onclick="toggleTemperatureUnit()">
+                    <div class="temp-toggle-slider"></div>
+                </div>
+                <span class="temp-unit-text">°F</span>
+            </div>
+            <button class="filters-toggle-btn" id="filters-toggle-btn" onclick="toggleFiltersVisibility()">Show Filters</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <p>🌊 Loading water conditions...</p>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="category-filters" class="category-filters" style="display: none;">
+            <div class="filters-title">📊 Category Filters</div>
+            <div id="filters-content" class="filters-content expanded">
+                <div class="filter-controls">
+                    <button class="filter-btn active" onclick="toggleAllCategories(true)">Show All</button>
+                    <button class="filter-btn" onclick="toggleAllCategories(false)">Hide All</button>
+                </div>
+                <div id="category-toggles" class="category-toggles">
+                    <!-- Category toggles will be dynamically generated -->
+                </div>
+            </div>
+        </div>
+
+        <div id="summary-cards-section" class="summary-cards-section" style="display: none;">
+            <div class="summary-cards-header">
+                <div class="summary-cards-title">📊 Current Conditions</div>
+                <button class="summary-toggle-btn" id="summary-toggle-btn" onclick="toggleSummaryVisibility()">Hide Summary</button>
+            </div>
+            <div id="summary-cards" class="summary-cards-container"></div>
+        </div>
+
+        <div id="data-tables-section" class="data-tables-section" style="display: none;">
+            <div class="data-tables-header">
+                <div class="data-tables-title">📋 Historical Data Tables</div>
+                <button class="data-tables-toggle-btn" id="data-tables-toggle-btn" onclick="toggleDataTablesVisibility()">Hide Tables</button>
+            </div>
+            <div id="data-container"></div>
+        </div>
+
+        <div id="usace-section" class="usace-section" style="display: none;">
+            <div class="usace-header">
+                <div>
+                    <div class="usace-title">🏗️ Dam Generation Schedule</div>
+                    <div class="usace-subtitle">Buford Dam/Lake Sidney Lanier - USACE</div>
+                </div>
+                <div class="usace-controls">
+                    <div id="current-generation-status" class="generation-status">
+                        <span>Loading...</span>
+                    </div>
+                    <button class="usace-toggle-btn" id="usace-toggle-btn" onclick="toggleUSACEVisibility()">Hide Dam Data</button>
+                </div>
+            </div>
+            <div id="generation-tables" class="generation-tables">
+                <!-- Generation schedule tables will be populated here -->
+            </div>
+            <div id="usace-info" class="usace-info">
+                <h4>🎣 Fishing Impact</h4>
+                <p><strong>Base Generation (Low):</strong> Minimal water release - Better for wading and bank fishing</p>
+                <p><strong>Peak Generation (High):</strong> Heavy water release - Dangerous conditions, avoid wading</p>
+                <p><strong>Intermediate:</strong> Moderate release - Use caution, water levels rising</p>
+            </div>
+        </div>
+
+        <div id="last-updated" class="last-updated"></div>
+        
+        <div class="legal-disclaimer">
+            <p><strong>Legal Disclaimer:</strong> The information provided on this page is for informational purposes only. I accept no responsibility for the use or accuracy of the information displayed. Water conditions can change rapidly and may be dangerous. Always exercise caution around water bodies and consult official sources before making decisions related to water activities. Use this information at your own risk.</p>
+        </div>
+    </div>
+
+    <script>
+        let currentPeriod = 'PT3H';
+        let currentData = {};
+        let visibleCategories = {}; // Track which categories are visible
+        let usaceData = null;
+        const DAM_CATEGORY_KEY = 'Buford Dam Generation';
+        let filtersExpanded = false; // Track filter panel state - start hidden
+        let useFahrenheit = true; // Default to Fahrenheit
+        let summaryExpanded = true; // Track summary cards state - start visible
+        let dataTablesExpanded = true; // Track data tables state - start visible
+        let usaceExpanded = true; // Track USACE section state - start visible
+        
+        // Load saved settings from localStorage
+        function loadSavedSettings() {
+            try {
+                const savedCategories = localStorage.getItem('canifishVisibleCategories');
+                if (savedCategories) {
+                    visibleCategories = JSON.parse(savedCategories);
+                }
+                
+                const savedFiltersExpanded = localStorage.getItem('canifishFiltersExpanded');
+                if (savedFiltersExpanded !== null) {
+                    filtersExpanded = JSON.parse(savedFiltersExpanded);
+                }
+                
+                const savedTempUnit = localStorage.getItem('canifishUseFahrenheit');
+                if (savedTempUnit !== null) {
+                    useFahrenheit = JSON.parse(savedTempUnit);
+                    // Update toggle visual state
+                    const toggle = document.getElementById('temp-toggle');
+                    if (toggle) {
+                        if (useFahrenheit) {
+                            toggle.classList.add('fahrenheit');
+                        } else {
+                            toggle.classList.remove('fahrenheit');
+                        }
+                    }
+                }
+                
+                const savedSummaryExpanded = localStorage.getItem('canifishSummaryExpanded');
+                if (savedSummaryExpanded !== null) {
+                    summaryExpanded = JSON.parse(savedSummaryExpanded);
+                }
+                
+                const savedDataTablesExpanded = localStorage.getItem('canifishDataTablesExpanded');
+                if (savedDataTablesExpanded !== null) {
+                    dataTablesExpanded = JSON.parse(savedDataTablesExpanded);
+                }
+                
+                const savedUsaceExpanded = localStorage.getItem('canifishUsaceExpanded');
+                if (savedUsaceExpanded !== null) {
+                    usaceExpanded = JSON.parse(savedUsaceExpanded);
+                }
+            } catch (error) {
+                console.warn('Error loading saved settings:', error);
+            }
+        }
+        
+        // Save settings to localStorage
+        function saveSettings() {
+            try {
+                localStorage.setItem('canifishVisibleCategories', JSON.stringify(visibleCategories));
+                localStorage.setItem('canifishFiltersExpanded', JSON.stringify(filtersExpanded));
+                localStorage.setItem('canifishUseFahrenheit', JSON.stringify(useFahrenheit));
+                localStorage.setItem('canifishSummaryExpanded', JSON.stringify(summaryExpanded));
+                localStorage.setItem('canifishDataTablesExpanded', JSON.stringify(dataTablesExpanded));
+                localStorage.setItem('canifishUsaceExpanded', JSON.stringify(usaceExpanded));
+            } catch (error) {
+                console.warn('Error saving settings:', error);
+            }
+        }
+        
+        function celsiusToFahrenheit(celsius) {
+            return (celsius * 9/5) + 32;
+        }
+        
+        function fahrenheitToCelsius(fahrenheit) {
+            return (fahrenheit - 32) * 5/9;
+        }
+        
+        function updateTimeSinceUpdate() {
+            const lastUpdated = document.getElementById('last-updated');
+            const updateTime = lastUpdated.getAttribute('data-update-time');
+            
+            if (updateTime) {
+                const now = new Date();
+                const updateDate = new Date(parseInt(updateTime));
+                const diffMinutes = Math.floor((now - updateDate) / (1000 * 60));
+                
+                let timeText;
+                if (diffMinutes < 1) {
+                    timeText = 'just now';
+                } else if (diffMinutes === 1) {
+                    timeText = '1 minute ago';
+                } else if (diffMinutes < 60) {
+                    timeText = `${diffMinutes} minutes ago`;
+                } else if (diffMinutes < 120) {
+                    timeText = '1 hour ago';
+                } else {
+                    const hours = Math.floor(diffMinutes / 60);
+                    timeText = `${hours} hours ago`;
+                }
+                
+                const currentText = lastUpdated.innerHTML;
+                if (currentText.includes('Data unavailable')) {
+                    lastUpdated.innerHTML = `<span style="color: #dc3545;">Data unavailable - ${timeText}</span>`;
+                } else {
+                    lastUpdated.innerHTML = `Last updated: ${timeText}`;
+                }
+            }
+            
+            // Also update dam generation time if summary cards are visible
+            if (usaceData && usaceData.timestamp) {
+                displayTable(currentData);
+            }
+        }
+        
+        function getApiEndpoints(period) {
+            const baseUrl = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=02335000&period=${period}`;
+            return [
+                'https://api.allorigins.win/get?url=' + encodeURIComponent(baseUrl),
+                'https://corsproxy.io/?' + encodeURIComponent(baseUrl),
+                'https://cors-anywhere.herokuapp.com/' + baseUrl
+            ];
+        }
+        
+        async function loadWaterData() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const dataContainer = document.getElementById('data-container');
+            const lastUpdated = document.getElementById('last-updated');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            dataContainer.innerHTML = '';
+            
+            let lastError = null;
+            const API_ENDPOINTS = getApiEndpoints(currentPeriod);
+            
+            // Try each API endpoint until one works
+            for (let i = 0; i < API_ENDPOINTS.length; i++) {
+                try {
+                    const response = await fetch(API_ENDPOINTS[i]);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    let data;
+                    const responseData = await response.json();
+                    
+                    // Handle different proxy response formats
+                    if (i === 0 && responseData.contents) {
+                        // allorigins.win format
+                        data = JSON.parse(responseData.contents);
+                    } else if (responseData.value || responseData.name) {
+                        // Direct USGS API format or other proxies
+                        data = responseData;
+                    } else {
+                        throw new Error('Unexpected response format');
+                    }
+                    
+                    const categories = parseTimeSeriesData(data);
+                    currentData = categories;
+                    displayTable(categories);
+                    
+                    const now = new Date();
+                    lastUpdated.innerHTML = `Last updated: just now`;
+                    lastUpdated.setAttribute('data-update-time', now.getTime());
+                    
+                    // Hide loading indicator on success
+                    loading.style.display = 'none';
+                    
+                    // Success! Exit the loop
+                    return;
+                    
+                } catch (err) {
+                    console.warn(`Endpoint ${i + 1} failed:`, err);
+                    lastError = err;
+                    continue;
+                }
+            }
+            
+            // If we get here, all endpoints failed - show error
+            console.error('All endpoints failed. Last error:', lastError);
+            
+            currentData = {};
+            
+            const now = new Date();
+            lastUpdated.innerHTML = `<span style="color: #dc3545;">Data unavailable - just now</span>`;
+            lastUpdated.setAttribute('data-update-time', now.getTime());
+            
+            error.innerHTML = `⚠️ Live data unavailable. Please check your internet connection or try again later.`;
+            error.style.display = 'block';
+            loading.style.display = 'none';
+            
+            // Show N/A message in data container
+            dataContainer.innerHTML = '<div style="text-align: center; color: #dc3545; font-size: 1.2rem; padding: 40px;">N/A - Data Currently Unavailable</div>';
+        }
+        
+        async function loadUSACEData() {
+            const usaceSection = document.getElementById('usace-section');
+            const currentStatus = document.getElementById('current-generation-status');
+            
+            try {
+                // Try direct fetch first, then CORS proxies if needed
+                const usaceEndpoints = [
+                    'https://raw.githubusercontent.com/mindfulbits/usace-data-collector/refs/heads/main/data/usace-latest.json',
+                    'https://api.allorigins.win/get?url=' + encodeURIComponent('https://raw.githubusercontent.com/mindfulbits/usace-data-collector/refs/heads/main/data/usace-latest.json'),
+                    'https://corsproxy.io/?' + encodeURIComponent('https://raw.githubusercontent.com/mindfulbits/usace-data-collector/refs/heads/main/data/usace-latest.json')
+                ];
+                
+                let data = null;
+                for (let i = 0; i < usaceEndpoints.length; i++) {
+                    try {
+                        const response = await fetch(usaceEndpoints[i]);
+                        const responseData = await response.json();
+                        
+                        if (i === 1 && responseData.contents) {
+                            // allorigins.win format
+                            data = JSON.parse(responseData.contents);
+                        } else {
+                            data = responseData;
+                        }
+                        break;
+                    } catch (err) {
+                        console.warn(`USACE endpoint ${i + 1} failed:`, err);
+                        continue;
+                    }
+                }
+                
+                if (data) {
+                    usaceData = data;
+                    displayUSACEData(data);
+                    usaceSection.style.display = 'block';
+                    
+                    // Refresh summary cards to include dam card
+                    if (Object.keys(currentData).length > 0) {
+                        displayTable(currentData);
+                    } else {
+                        // If no water data yet, just show the dam card
+                        const summaryCardsContainer = document.getElementById('summary-cards');
+                        summaryCardsContainer.innerHTML = '';
+                        const damCard = createDamSummaryCard(data);
+                        summaryCardsContainer.appendChild(damCard);
+                        summaryCardsContainer.style.display = 'grid';
+                    }
+                } else {
+                    throw new Error('All USACE endpoints failed');
+                }
+                
+            } catch (error) {
+                console.error('Failed to load USACE data:', error);
+                currentStatus.innerHTML = '<span style="color: #dc3545;">⚠️ Data Unavailable</span>';
+                usaceSection.style.display = 'block';
+            }
+        }
+        
+        function displayUSACEData(data) {
+            const currentStatus = document.getElementById('current-generation-status');
+            const generationTables = document.getElementById('generation-tables');
+            const usaceSection = document.getElementById('usace-section');
+            const usaceInfo = document.getElementById('usace-info');
+            
+            generationTables.innerHTML = '';
+            
+            // Hide the entire USACE section if dam category is not visible
+            if (!visibleCategories[DAM_CATEGORY_KEY]) {
+                usaceSection.style.display = 'none';
+                return;
+            }
+            
+            // Show the USACE section if dam category is visible
+            usaceSection.style.display = 'block';
+            
+            // Control visibility of USACE content based on expanded state
+            if (usaceExpanded) {
+                generationTables.style.display = 'block';
+                usaceInfo.style.display = 'block';
+            } else {
+                generationTables.style.display = 'none';
+                usaceInfo.style.display = 'none';
+            }
+            
+            const today = new Date();
+            const currentHour = today.getHours();
+            
+            // Create dates for yesterday, today, and tomorrow
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+            
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+            
+            const dates = [
+                { date: yesterday, label: 'Previous Day', key: `${yesterday.getMonth() + 1}/${yesterday.getDate()}/${yesterday.getFullYear()}` },
+                { date: today, label: 'Current Day', key: `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}` },
+                { date: tomorrow, label: 'Following Day', key: `${tomorrow.getMonth() + 1}/${tomorrow.getDate()}/${tomorrow.getFullYear()}` }
+            ];
+            
+            let currentPeriod = null;
+            
+            // Process each day
+            dates.forEach(({ date, label, key }) => {
+                const schedule = data.schedules[key];
+                
+                if (schedule && schedule.periods && schedule.periods.length > 0) {
+                    const tableContainer = createDayTable(schedule, date, label, currentHour, key === dates[1].key);
+                    generationTables.appendChild(tableContainer);
+                    
+                    // Find current period for status display
+                    if (key === dates[1].key) {
+                        schedule.periods.forEach(period => {
+                            const timeMatch = period.time.match(/(\d+):00 (am|pm)/);
+                            if (timeMatch) {
+                                let hour = parseInt(timeMatch[1]);
+                                if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                                if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                                
+                                if (hour === currentHour) {
+                                    currentPeriod = period;
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Update current status
+            if (currentPeriod) {
+                const statusClass = `status-${currentPeriod.status}`;
+                const statusText = currentPeriod.status.charAt(0).toUpperCase() + currentPeriod.status.slice(1);
+                currentStatus.className = `generation-status ${statusClass}`;
+                currentStatus.innerHTML = `
+                    <span>Current: ${currentPeriod.generation} MW</span>
+                    <span>${statusText}</span>
+                `;
+            } else {
+                currentStatus.innerHTML = '<span style="color: #666;">Status Unknown</span>';
+            }
+        }
+        
+        function createDayTable(schedule, date, label, currentHour, isToday) {
+            const container = document.createElement('div');
+            container.className = 'table-container';
+            
+            // Add ID for Current Day table to enable linking from dam card
+            if (isToday && label === 'Current Day') {
+                container.id = 'dam-current-day-table';
+            }
+            
+            // Create title
+            const title = document.createElement('div');
+            title.className = 'day-table-title';
+            title.innerHTML = `
+                <span>${label}</span>
+                <span class="day-date">${date.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                })}</span>
+            `;
+            container.appendChild(title);
+            
+            // Create table
+            const table = document.createElement('table');
+            table.className = 'generation-table';
+            
+            // Create header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ['Time Period', 'Generation (MW)', 'Status'].forEach(headerText => {
+                const th = document.createElement('th');
+                th.textContent = headerText;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Create body
+            const tbody = document.createElement('tbody');
+            // Only show first 24 periods (24 hours)
+            const periodsToShow = schedule.periods.slice(0, 24);
+            periodsToShow.forEach(period => {
+                const row = document.createElement('tr');
+                
+                // Check if this is the current hour
+                let isCurrent = false;
+                if (isToday) {
+                    const timeMatch = period.time.match(/(\d+):00 (am|pm)/);
+                    if (timeMatch) {
+                        let hour = parseInt(timeMatch[1]);
+                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                        
+                        if (hour === currentHour) {
+                            isCurrent = true;
+                            row.className = 'current-hour';
+                        }
+                    }
+                }
+                
+                // Time period
+                const timeCell = document.createElement('td');
+                timeCell.textContent = period.time + (isCurrent ? ' (Current)' : '');
+                row.appendChild(timeCell);
+                
+                // Generation MW
+                const mwCell = document.createElement('td');
+                mwCell.className = 'mw-value';
+                mwCell.textContent = period.generation;
+                row.appendChild(mwCell);
+                
+                // Status
+                const statusCell = document.createElement('td');
+                const statusSpan = document.createElement('span');
+                statusSpan.className = `status-cell ${period.status}`;
+                statusSpan.textContent = period.status;
+                statusCell.appendChild(statusSpan);
+                row.appendChild(statusCell);
+                
+                
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            container.appendChild(table);
+            
+            return container;
+        }
+        
+        function parseTimeSeriesData(data) {
+            const categories = {};
+            
+            if (!data.value || !data.value.timeSeries) {
+                return categories;
+            }
+            
+            data.value.timeSeries.forEach(series => {
+                const variable = series.variable || {};
+                const paramName = variable.variableName || 'Unknown Parameter';
+                const paramCode = (variable.variableCode && variable.variableCode[0]) ? 
+                    variable.variableCode[0].value : 'Unknown';
+                const unit = variable.unit ? variable.unit.unitAbbreviation : '';
+                
+                let categoryKey = `${paramName} (${paramCode})${unit ? ' - ' + unit : ''}`;
+                let displayName = categoryKey;
+                let originalTitle = categoryKey;
+                
+                // Simplify turbidity display name
+                if (categoryKey.includes('Turbidity') && categoryKey.includes('63680')) {
+                    displayName = `Turbidity${unit ? ' - ' + unit : ''}`;
+                    originalTitle = categoryKey; // Keep full name for tooltip
+                    categoryKey = displayName; // Use simplified name as key
+                }
+                
+                // Simplify temperature display name
+                if (categoryKey.includes('Temperature') && categoryKey.includes('00010')) {
+                    displayName = `Temperature${unit ? ' - ' + unit : ''}`;
+                    originalTitle = categoryKey; // Keep full name for tooltip
+                    categoryKey = displayName; // Use simplified name as key
+                }
+                
+                // Simplify precipitation display name
+                if (categoryKey.includes('Precipitation') && categoryKey.includes('00045')) {
+                    displayName = `Precipitation (in)${unit ? ' - ' + unit : ''}`;
+                    originalTitle = categoryKey; // Keep full name for tooltip
+                    categoryKey = displayName; // Use simplified name as key
+                }
+                
+                // Simplify streamflow display name
+                if (categoryKey.includes('Streamflow') && categoryKey.includes('00060')) {
+                    displayName = `Streamflow (ft³/s)${unit ? ' - ' + unit : ''}`;
+                    originalTitle = categoryKey; // Keep full name for tooltip
+                    categoryKey = displayName; // Use simplified name as key
+                }
+                
+                // Simplify gage height display name
+                if (categoryKey.includes('Gage height') && categoryKey.includes('00065')) {
+                    displayName = `Gage Height (ft)${unit ? ' - ' + unit : ''}`;
+                    originalTitle = categoryKey; // Keep full name for tooltip
+                    categoryKey = displayName; // Use simplified name as key
+                }
+                
+                // Simplify specific conductance display name
+                if (categoryKey.includes('Specific conductance') && categoryKey.includes('00095')) {
+                    displayName = `Specific Conductance${unit ? ' - ' + unit : ''}`;
+                    originalTitle = categoryKey; // Keep full name for tooltip
+                    categoryKey = displayName; // Use simplified name as key
+                }
+                
+                // Simplify Escherichia coli display name
+                if (categoryKey.includes('Escherichia coli') && categoryKey.includes('99407')) {
+                    displayName = `Escherichia Coli${unit ? ' - ' + unit : ''}`;
+                    originalTitle = categoryKey; // Keep full name for tooltip
+                    categoryKey = displayName; // Use simplified name as key
+                }
+                
+                // Update temperature unit in category name based on user preference
+                if (categoryKey.includes('°C') || categoryKey.includes('deg C')) {
+                    if (useFahrenheit) {
+                        categoryKey = categoryKey.replace(/°C|deg C/g, '°F');
+                        displayName = categoryKey;
+                    }
+                }
+                
+                const values = (series.values && series.values[0]) ? series.values[0].value : [];
+                
+                const measurements = values.map(valueEntry => ({
+                    value: parseFloat(valueEntry.value) || 0,
+                    datetime: valueEntry.dateTime || '',
+                    qualifiers: valueEntry.qualifiers || []
+                })).filter(m => m.datetime);
+                
+                if (measurements.length > 0) {
+                    // Sort by datetime (most recent first) - keep all data for historical view
+                    measurements.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+                    categories[categoryKey] = measurements;
+                    // Store original title for tooltip if it's different from display name
+                    if (originalTitle !== displayName) {
+                        categories[categoryKey].originalTitle = originalTitle;
+                    }
+                }
+            });
+            
+            return categories;
+        }
+        
+        
+        
+        function formatDateTime(dateTimeString) {
+            try {
+                const date = new Date(dateTimeString);
+                
+                // Manual formatting to get exact "M/d/yy, h:mm am/pm" format
+                const month = date.getMonth() + 1; // getMonth() is 0-indexed
+                const day = date.getDate();
+                const year = date.getFullYear().toString().slice(-2); // Get last 2 digits
+                
+                let hours = date.getHours();
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                
+                hours = hours % 12;
+                hours = hours ? hours : 12; // 0 should be 12
+                
+                return `${month}/${day}/${year}, ${hours}:${minutes} ${ampm}`;
+            } catch (e) {
+                return dateTimeString;
+            }
+        }
+        
+        function createSummaryCard(categoryName, measurements) {
+            const card = document.createElement('div');
+            card.className = 'summary-card';
+            
+            // Summary info section
+            const summaryInfo = document.createElement('div');
+            summaryInfo.className = 'summary-info';
+            
+            const title = document.createElement('div');
+            title.className = 'summary-title';
+            title.textContent = categoryName;
+            
+            // Add tooltip if there's an original title
+            if (measurements.originalTitle) {
+                title.title = measurements.originalTitle;
+            }
+            
+            // Make title clickable to scroll to corresponding table
+            title.style.cursor = 'pointer';
+            title.onclick = () => scrollToTable(categoryName);
+            
+            summaryInfo.appendChild(title);
+            
+            // Latest value
+            const latestValue = document.createElement('div');
+            latestValue.className = 'latest-value';
+            
+            if (measurements.length > 0) {
+                let displayValue = measurements[0].value;
+                // Handle temperature conversion based on user preference
+                if (categoryName.toLowerCase().includes('temperature') || categoryName.includes('°C') || categoryName.includes('deg C')) {
+                    if (useFahrenheit) {
+                        displayValue = celsiusToFahrenheit(displayValue);
+                        latestValue.textContent = displayValue.toFixed(1) + '°F';
+                    } else {
+                        latestValue.textContent = displayValue.toFixed(1) + '°C';
+                    }
+                } else {
+                    latestValue.textContent = displayValue.toFixed(2);
+                }
+                
+                // Add trend color and hover tooltip based on trend direction
+                if (measurements.length >= 2) {
+                    const currentValue = measurements[0].value;
+                    const previousValue = measurements[1].value;
+                    const difference = currentValue - previousValue;
+                    
+                    // Create hover tooltip showing change since previous reading
+                    const changeDirection = difference > 0 ? '+' : '';
+                    const changeText = `${changeDirection}${difference.toFixed(2)} since previous reading`;
+                    latestValue.title = changeText;
+                    latestValue.style.cursor = 'help';
+                    
+                    if (Math.abs(difference) > 0.01) { // Only color if there's a meaningful change
+                        if (difference > 0) {
+                            latestValue.classList.add('trend-up'); // Red for rising
+                        } else {
+                            latestValue.classList.add('trend-down'); // Green for falling
+                        }
+                    }
+                } else if (measurements.length === 1) {
+                    // Single reading - no previous data to compare
+                    latestValue.title = 'No previous reading available for comparison';
+                    latestValue.style.cursor = 'help';
+                }
+            } else {
+                latestValue.innerHTML = '<span style="color: #dc3545;">N/A</span>';
+            }
+            summaryInfo.appendChild(latestValue);
+            
+            // Time since last measurement
+            const timeSince = document.createElement('div');
+            timeSince.className = 'time-since';
+            if (measurements.length > 0) {
+                const lastTime = new Date(measurements[0].datetime);
+                const now = new Date();
+                const diffMinutes = Math.floor((now - lastTime) / (1000 * 60));
+                
+                if (diffMinutes < 60) {
+                    timeSince.textContent = `${diffMinutes} minutes ago`;
+                } else {
+                    const diffHours = Math.floor(diffMinutes / 60);
+                    const remainingMinutes = diffMinutes % 60;
+                    timeSince.textContent = `${diffHours}h ${remainingMinutes}m ago`;
+                }
+            } else {
+                timeSince.innerHTML = '<span style="color: #dc3545;">N/A</span>';
+            }
+            summaryInfo.appendChild(timeSince);
+            
+            // Trend indicator
+            const trendIndicator = document.createElement('div');
+            trendIndicator.className = 'trend-indicator';
+            
+            const trendArrow = document.createElement('div');
+            trendArrow.className = 'trend-arrow';
+            
+            const trendText = document.createElement('div');
+            trendText.className = 'trend-text';
+            
+            const rateOfChange = document.createElement('div');
+            rateOfChange.className = 'rate-of-change';
+            
+            // Calculate trend over past 3 hours (or available data)
+            if (measurements.length >= 2) {
+                let latest = measurements[0].value;
+                const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
+                
+                // Find measurement closest to 3 hours ago
+                let compareValue = measurements[measurements.length - 1].value; // fallback to oldest
+                let actualTimeSpan = 3; // Default to 3 hours
+                
+                for (let i = measurements.length - 1; i >= 0; i--) {
+                    const measurementTime = new Date(measurements[i].datetime);
+                    if (measurementTime >= threeHoursAgo) {
+                        compareValue = measurements[i].value;
+                        // Calculate actual time span in hours
+                        const latestTime = new Date(measurements[0].datetime);
+                        actualTimeSpan = (latestTime - measurementTime) / (1000 * 60 * 60);
+                        break;
+                    }
+                }
+                
+                // Convert temperature values if needed
+                const isTemperature = categoryName.toLowerCase().includes('temperature') || categoryName.includes('°C') || categoryName.includes('deg C');
+                if (isTemperature && useFahrenheit) {
+                    latest = celsiusToFahrenheit(latest);
+                    compareValue = celsiusToFahrenheit(compareValue);
+                }
+                
+                const difference = latest - compareValue;
+                const percentChange = Math.abs(difference / compareValue * 100);
+                const ratePerHour = actualTimeSpan > 0 ? difference / actualTimeSpan : 0;
+                
+                // Set trend direction
+                if (percentChange < 2) { // Less than 2% change considered stable
+                    trendArrow.textContent = '→';
+                    trendArrow.classList.add('trend-stable');
+                    trendText.textContent = 'Stable';
+                    trendText.classList.add('trend-stable');
+                    trendText.title = 'Trend over past 3hr';
+                    trendText.style.cursor = 'help';
+                    rateOfChange.textContent = `±${Math.abs(ratePerHour).toFixed(2)}/hr`;
+                    rateOfChange.classList.add('trend-stable');
+                } else if (difference > 0) {
+                    trendArrow.textContent = '↗';
+                    trendArrow.classList.add('trend-up');
+                    trendText.textContent = 'Rising';
+                    trendText.classList.add('trend-up');
+                    trendText.title = 'Trend over past 3hr';
+                    trendText.style.cursor = 'help';
+                    rateOfChange.textContent = `+${ratePerHour.toFixed(2)}/hr`;
+                    rateOfChange.classList.add('trend-up');
+                } else {
+                    trendArrow.textContent = '↘';
+                    trendArrow.classList.add('trend-down');
+                    trendText.textContent = 'Falling';
+                    trendText.classList.add('trend-down');
+                    trendText.title = 'Trend over past 3hr';
+                    trendText.style.cursor = 'help';
+                    rateOfChange.textContent = `${ratePerHour.toFixed(2)}/hr`;
+                    rateOfChange.classList.add('trend-down');
+                }
+            } else {
+                trendArrow.textContent = '?';
+                trendArrow.classList.add('trend-stable');
+                trendText.textContent = 'Unknown';
+                trendText.classList.add('trend-stable');
+                rateOfChange.textContent = 'N/A';
+                rateOfChange.classList.add('trend-stable');
+            }
+            
+            trendIndicator.appendChild(trendArrow);
+            trendIndicator.appendChild(trendText);
+            trendIndicator.appendChild(rateOfChange);
+            
+            card.appendChild(summaryInfo);
+            card.appendChild(trendIndicator);
+            
+            return card;
+        }
+        
+        function createDamSummaryCard(data) {
+            const card = document.createElement('div');
+            card.className = 'dam-summary-card';
+            
+            // Dam info section
+            const damInfo = document.createElement('div');
+            damInfo.className = 'dam-info';
+            
+            const title = document.createElement('div');
+            title.className = 'dam-title';
+            title.textContent = 'Buford Dam Generation';
+            
+            // Make title clickable to scroll to Current Day table
+            title.style.cursor = 'pointer';
+            title.onclick = () => scrollToDamTable();
+            
+            damInfo.appendChild(title);
+            
+            // Find current period
+            const today = new Date();
+            const currentHour = today.getHours();
+            const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+            const schedule = data.schedules[todayStr];
+            
+            let currentPeriod = null;
+            let nextPeriod = null;
+            
+            if (schedule && schedule.periods) {
+                schedule.periods.forEach((period, index) => {
+                    const timeMatch = period.time.match(/(\d+):00 (am|pm)/);
+                    if (timeMatch) {
+                        let hour = parseInt(timeMatch[1]);
+                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                        
+                        if (hour === currentHour) {
+                            currentPeriod = period;
+                            // Get next period if available
+                            if (index + 1 < schedule.periods.length) {
+                                nextPeriod = schedule.periods[index + 1];
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Current value
+            const currentValue = document.createElement('div');
+            currentValue.className = 'dam-current-value';
+            currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
+            damInfo.appendChild(currentValue);
+            
+            // Status info - show time since update
+            const statusInfo = document.createElement('div');
+            statusInfo.className = 'dam-status-info';
+            
+            if (data.timestamp) {
+                const now = new Date();
+                const updateTime = new Date(data.timestamp);
+                const diffMinutes = Math.floor((now - updateTime) / (1000 * 60));
+                
+                let timeText;
+                if (diffMinutes < 1) {
+                    timeText = 'just now';
+                } else if (diffMinutes === 1) {
+                    timeText = '1 minute ago';
+                } else if (diffMinutes < 60) {
+                    timeText = `${diffMinutes} minutes ago`;
+                } else if (diffMinutes < 120) {
+                    timeText = '1 hour ago';
+                } else {
+                    const hours = Math.floor(diffMinutes / 60);
+                    timeText = `${hours} hours ago`;
+                }
+                
+                statusInfo.textContent = timeText;
+            } else {
+                statusInfo.textContent = 'No timestamp available';
+            }
+            
+            damInfo.appendChild(statusInfo);
+            
+            // Dam indicator section
+            const damIndicator = document.createElement('div');
+            damIndicator.className = 'dam-indicator';
+            
+            
+            // Previous change info
+            const previousChange = document.createElement('div');
+            previousChange.className = 'dam-previous-change';
+            
+            if (schedule && schedule.periods && currentPeriod) {
+                // Look for the previous different generation level
+                let foundPreviousChange = false;
+                const currentGen = currentPeriod.generation;
+                
+                // Search backwards from current hour
+                for (let i = schedule.periods.length - 1; i >= 0; i--) {
+                    const period = schedule.periods[i];
+                    const timeMatch = period.time.match(/(\d+):00 (am|pm)/);
+                    
+                    if (timeMatch) {
+                        let hour = parseInt(timeMatch[1]);
+                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                        
+                        // Look for periods before current hour with different generation
+                        if (hour < currentHour && period.generation !== currentGen) {
+                            const hoursAgo = currentHour - hour;
+                            const timeAgoText = hoursAgo === 1 ? '1 hour ago' : `${hoursAgo} hours ago`;
+                            
+                            const difference = currentGen - period.generation;
+                            const changeDirection = difference > 0 ? '+' : '';
+                            const changeColor = difference > 0 ? '#dc3545' : '#28a745';
+                            
+                            previousChange.innerHTML = `
+                                <div>Last change: ${timeAgoText}</div>
+                                <div style="color: ${changeColor}; font-weight: bold;">
+                                    ${changeDirection}${difference} MW
+                                </div>
+                            `;
+                            foundPreviousChange = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If no change found today, check yesterday's schedule
+                if (!foundPreviousChange) {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayStr = `${yesterday.getMonth() + 1}/${yesterday.getDate()}/${yesterday.getFullYear()}`;
+                    const yesterdaySchedule = data.schedules[yesterdayStr];
+                    
+                    if (yesterdaySchedule && yesterdaySchedule.periods && yesterdaySchedule.periods.length > 0) {
+                        // Check the last period of yesterday
+                        const lastPeriod = yesterdaySchedule.periods[yesterdaySchedule.periods.length - 1];
+                        if (lastPeriod.generation !== currentGen) {
+                            const hoursAgo = currentHour + (24 - 23); // Hours since 11pm yesterday
+                            const timeAgoText = hoursAgo === 1 ? '1 hour ago' : `${hoursAgo} hours ago`;
+                            
+                            const difference = currentGen - lastPeriod.generation;
+                            const changeDirection = difference > 0 ? '+' : '';
+                            const changeColor = difference > 0 ? '#dc3545' : '#28a745';
+                            
+                            previousChange.innerHTML = `
+                                <div>Last change: ${timeAgoText}</div>
+                                <div style="color: ${changeColor}; font-weight: bold;">
+                                    ${changeDirection}${difference} MW
+                                </div>
+                            `;
+                            foundPreviousChange = true;
+                        }
+                    }
+                }
+                
+                if (!foundPreviousChange) {
+                    previousChange.innerHTML = `
+                        <div>No recent changes</div>
+                        <div style="color: #666;">Stable since start of day</div>
+                    `;
+                }
+            } else {
+                previousChange.textContent = 'Schedule unavailable';
+            }
+            
+            // Create container for both changes
+            const changesContainer = document.createElement('div');
+            changesContainer.className = 'dam-changes-container';
+            
+            // Next change info
+            const nextChange = document.createElement('div');
+            nextChange.className = 'dam-next-change';
+            
+            if (schedule && schedule.periods && currentPeriod) {
+                // Look for the next different generation level
+                let foundNextChange = false;
+                const currentGen = currentPeriod.generation;
+                
+                for (let i = 0; i < schedule.periods.length; i++) {
+                    const period = schedule.periods[i];
+                    const timeMatch = period.time.match(/(\d+):00 (am|pm)/);
+                    
+                    if (timeMatch) {
+                        let hour = parseInt(timeMatch[1]);
+                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                        
+                        // Look for periods after current hour
+                        if (hour > currentHour && period.generation !== currentGen) {
+                            const changeTime = timeMatch[2] === 'am' ? 
+                                (hour === 0 ? '12:00 am' : `${hour}:00 am`) :
+                                (hour === 12 ? '12:00 pm' : `${hour - 12}:00 pm`);
+                            
+                            const difference = period.generation - currentGen;
+                            const changeDirection = difference > 0 ? '+' : '';
+                            const changeColor = difference > 0 ? '#dc3545' : '#28a745'; // Red for increase, green for decrease
+                            
+                            nextChange.innerHTML = `
+                                <div>Next change: ${changeTime}</div>
+                                <div style="color: ${changeColor}; font-weight: bold;">
+                                    ${changeDirection}${difference} MW (${period.generation} MW)
+                                </div>
+                            `;
+                            foundNextChange = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If no change found for today, check if there are more periods tomorrow
+                if (!foundNextChange) {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const tomorrowStr = `${tomorrow.getMonth() + 1}/${tomorrow.getDate()}/${tomorrow.getFullYear()}`;
+                    const tomorrowSchedule = data.schedules[tomorrowStr];
+                    
+                    if (tomorrowSchedule && tomorrowSchedule.periods && tomorrowSchedule.periods.length > 0) {
+                        const firstPeriod = tomorrowSchedule.periods[0];
+                        if (firstPeriod.generation !== currentGen) {
+                            const difference = firstPeriod.generation - currentGen;
+                            const changeDirection = difference > 0 ? '+' : '';
+                            const changeColor = difference > 0 ? '#dc3545' : '#28a745';
+                            
+                            nextChange.innerHTML = `
+                                <div>Next change: Tomorrow 12:00 am</div>
+                                <div style="color: ${changeColor}; font-weight: bold;">
+                                    ${changeDirection}${difference} MW (${firstPeriod.generation} MW)
+                                </div>
+                            `;
+                            foundNextChange = true;
+                        }
+                    }
+                }
+                
+                if (!foundNextChange) {
+                    nextChange.innerHTML = `
+                        <div>No changes scheduled</div>
+                        <div style="color: #666;">Stable at ${currentGen} MW</div>
+                    `;
+                }
+            } else {
+                nextChange.textContent = 'Schedule unavailable';
+            }
+            
+            // Add both changes to the container
+            changesContainer.appendChild(previousChange);
+            changesContainer.appendChild(nextChange);
+            
+            // Add the container to the dam indicator
+            damIndicator.appendChild(changesContainer);
+            
+            card.appendChild(damInfo);
+            card.appendChild(damIndicator);
+            
+            return card;
+        }
+        
+        function checkFishingConditions(categories, usaceData) {
+            // Check fishing conditions and set background colors
+            let turbidityGood = false;
+            let gageHeightGood = false;
+            let generationHoursAbove5 = 0;
+            
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+            const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
+            const fourteenHoursAgo = new Date(now.getTime() - 14 * 60 * 60 * 1000);
+            
+            // Check Turbidity - less than 10 for past hour
+            Object.entries(categories).forEach(([categoryName, measurements]) => {
+                if (categoryName.toLowerCase().includes('turbidity') && measurements.length > 0) {
+                    const recentMeasurements = measurements.filter(m => new Date(m.datetime) >= oneHourAgo);
+                    if (recentMeasurements.length > 0) {
+                        turbidityGood = recentMeasurements.every(m => m.value < 10);
+                    }
+                }
+                
+                // Check Gage Height - less than 4 ft for past hour
+                if (categoryName.toLowerCase().includes('gage height') && measurements.length > 0) {
+                    const recentMeasurements = measurements.filter(m => new Date(m.datetime) >= oneHourAgo);
+                    if (recentMeasurements.length > 0) {
+                        gageHeightGood = recentMeasurements.every(m => m.value < 4);
+                    }
+                }
+            });
+            
+            // Check Dam Generation - track when generation goes above 5 MW
+            let isCurrentlyGeneratingAbove5 = false;
+            if (usaceData && usaceData.schedules) {
+                const today = new Date();
+                const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+                const schedule = usaceData.schedules[todayStr];
+                
+                if (schedule && schedule.periods) {
+                    const currentHour = today.getHours();
+                    
+                    // Check current generation level
+                    for (let i = 0; i < schedule.periods.length && i < 24; i++) {
+                        const period = schedule.periods[i];
+                        const timeMatch = period.time.match(/(\d+):00 (am|pm)/);
+                        
+                        if (timeMatch) {
+                            let hour = parseInt(timeMatch[1]);
+                            if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                            if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                            
+                            // Check if this is the current hour
+                            if (hour === currentHour) {
+                                if (period.generation >= 5) {
+                                    isCurrentlyGeneratingAbove5 = true;
+                                    // Store the trigger time if not already stored
+                                    if (!localStorage.getItem('generationTriggerTime')) {
+                                        localStorage.setItem('generationTriggerTime', now.getTime().toString());
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Also check for historical data to count consecutive hours (for red condition)
+                    let consecutiveHighGeneration = 0;
+                    let maxConsecutiveHours = 0;
+                    
+                    for (let i = 0; i < schedule.periods.length && i < 24; i++) {
+                        const period = schedule.periods[i];
+                        const timeMatch = period.time.match(/(\d+):00 (am|pm)/);
+                        
+                        if (timeMatch) {
+                            let hour = parseInt(timeMatch[1]);
+                            if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                            if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                            
+                            // Check if this hour is within our 14-hour window (going backwards from current hour)
+                            const hoursBack = currentHour >= hour ? currentHour - hour : (24 - hour) + currentHour;
+                            if (hoursBack < 14) {
+                                if (period.generation >= 5) {
+                                    consecutiveHighGeneration++;
+                                    maxConsecutiveHours = Math.max(maxConsecutiveHours, consecutiveHighGeneration);
+                                } else {
+                                    consecutiveHighGeneration = 0;
+                                }
+                            }
+                        }
+                    }
+                    
+                    generationHoursAbove5 = maxConsecutiveHours;
+                }
+            }
+            
+            // Check if we should maintain orange background for 4.5 hours after trigger
+            let shouldShowOrangeBackground = false;
+            const triggerTime = localStorage.getItem('generationTriggerTime');
+            if (triggerTime) {
+                const triggerTimestamp = parseInt(triggerTime);
+                const hoursElapsed = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
+                
+                if (hoursElapsed <= 4.5) {
+                    shouldShowOrangeBackground = true;
+                } else {
+                    // Clear the trigger time if 4.5 hours have passed
+                    localStorage.removeItem('generationTriggerTime');
+                }
+            }
+            
+            // Apply background colors based on conditions
+            const body = document.body;
+            let backgroundColor = '';
+            let indicatorText = '';
+            let indicatorColor = '';
+            
+            // Check for orange conditions first (caution) - 4.5 hours after generation above 5MW
+            // Turbidity < 10 AND Gage Height < 4 ft AND Generation went above 5 MW (maintain for 4.5 hours)
+            if (turbidityGood && gageHeightGood && shouldShowOrangeBackground) {
+                backgroundColor = 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)';
+                indicatorText = '⚠️ Caution: Recent Generation Activity';
+                indicatorColor = 'rgba(255, 152, 0, 0.9)';
+            }
+            // Check for green conditions (ideal fishing)
+            // Turbidity < 10 AND Gage Height < 4 ft AND Generation below 5 MW for last 14 hours AND no orange trigger active
+            else if (turbidityGood && gageHeightGood && generationHoursAbove5 === 0 && !shouldShowOrangeBackground) {
+                backgroundColor = 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)';
+                indicatorText = '🎣 Excellent Fishing Conditions!';
+                indicatorColor = 'rgba(76, 175, 80, 0.9)';
+            }
+            // Check for red conditions (poor fishing)
+            // Gage Height > 4 ft AND Generation above 5 MW within last 4-14 hours
+            else if (!gageHeightGood  ||  generationHoursAbove5 > 1 && generationHoursAbove5 < 14) {
+                backgroundColor = 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)';
+                indicatorText = '🚫 Poor Fishing: High Water';
+                indicatorColor = 'rgba(244, 67, 54, 0.9)';
+            }
+            
+            // Apply the background and indicator
+            if (backgroundColor) {
+                body.style.background = backgroundColor;
+                body.style.transition = 'background 1s ease-in-out';
+                
+                // Add indicator
+                const indicator = document.createElement('div');
+                indicator.innerHTML = indicatorText;
+                indicator.style.cssText = `
+                    position: fixed;
+                    top: 10px;
+                    right: 10px;
+                    background: ${indicatorColor};
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    font-weight: bold;
+                    font-size: 0.9rem;
+                    z-index: 1001;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    animation: slideIn 0.5s ease-out;
+                `;
+                
+                // Remove existing indicator if present
+                const existingIndicator = document.querySelector('.fishing-conditions-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+                
+                indicator.className = 'fishing-conditions-indicator';
+                document.body.appendChild(indicator);
+                
+                // Add slide-in animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            } else {
+                // Reset to original background
+                body.style.background = '';
+                
+                // Remove indicator if present
+                const existingIndicator = document.querySelector('.fishing-conditions-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+            }
+        }
+
+        function displayTable(categories) {
+            const dataContainer = document.getElementById('data-container');
+            const summaryCardsContainer = document.getElementById('summary-cards');
+            const summaryCardsSection = document.getElementById('summary-cards-section');
+            const dataTablesSection = document.getElementById('data-tables-section');
+            const categoryFiltersContainer = document.getElementById('category-filters');
+            
+            // Clear previous content
+            dataContainer.innerHTML = '';
+            summaryCardsContainer.innerHTML = '';
+            
+            if (Object.keys(categories).length === 0 && !usaceData) {
+                dataContainer.innerHTML = '<div style="text-align: center; color: #dc3545; font-size: 1.2rem; padding: 40px;">N/A - No data available for this site</div>';
+                summaryCardsContainer.style.display = 'none';
+                categoryFiltersContainer.style.display = 'none';
+                return;
+            }
+            
+            // Initialize visibility for new categories
+            Object.keys(categories).forEach(categoryName => {
+                if (!(categoryName in visibleCategories)) {
+                    visibleCategories[categoryName] = true; // Default to visible
+                }
+            });
+            
+            // Initialize dam category visibility if USACE data is available
+            if (usaceData && !(DAM_CATEGORY_KEY in visibleCategories)) {
+                visibleCategories[DAM_CATEGORY_KEY] = true; // Default to visible
+            }
+            
+            // Create category filter toggles (if there are water categories or USACE data)
+            if (Object.keys(categories).length > 0 || usaceData) {
+                createCategoryFilters(categories);
+                // Only show filters if they were previously expanded
+                if (filtersExpanded) {
+                    categoryFiltersContainer.style.display = 'block';
+                } else {
+                    categoryFiltersContainer.style.display = 'none';
+                }
+            }
+            
+            // Create dam summary card first if USACE data is available and visible
+            if (usaceData && visibleCategories[DAM_CATEGORY_KEY]) {
+                const damCard = createDamSummaryCard(usaceData);
+                summaryCardsContainer.appendChild(damCard);
+            }
+            
+            // Create all summary cards (only visible ones)
+            Object.entries(categories).forEach(([categoryName, measurements]) => {
+                if (visibleCategories[categoryName]) {
+                    const summaryCard = createSummaryCard(categoryName, measurements);
+                    summaryCardsContainer.appendChild(summaryCard);
+                }
+            });
+            
+            // Show summary cards section if we have any data and it's expanded
+            if (Object.keys(categories).length > 0 || usaceData) {
+                summaryCardsSection.style.display = 'block';
+                if (summaryExpanded) {
+                    summaryCardsContainer.style.display = 'grid';
+                } else {
+                    summaryCardsContainer.style.display = 'none';
+                }
+            }
+            
+            // Show data tables section if we have water data
+            if (Object.keys(categories).length > 0) {
+                dataTablesSection.style.display = 'block';
+                if (!dataTablesExpanded) {
+                    dataContainer.style.display = 'none';
+                } else {
+                    dataContainer.style.display = 'block';
+                }
+            }
+            
+            // Then create all tables (only visible ones)
+            Object.entries(categories).forEach(([categoryName, measurements]) => {
+                if (visibleCategories[categoryName]) {
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'table-container';
+                // Add unique ID for linking from summary cards
+                const tableId = 'table-' + categoryName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+                tableContainer.id = tableId;
+                
+                const title = document.createElement('h3');
+                title.textContent = categoryName;
+                title.style.marginBottom = '15px';
+                title.style.color = '#333';
+                
+                // Add tooltip if there's an original title
+                if (measurements.originalTitle) {
+                    title.title = measurements.originalTitle;
+                    title.style.cursor = 'help';
+                }
+                
+                tableContainer.appendChild(title);
+                
+                const table = document.createElement('table');
+                table.className = 'data-table';
+                
+                // Create header
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                ['Value', 'Date & Time'].forEach(headerText => {
+                    const th = document.createElement('th');
+                    th.textContent = headerText;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                
+                // Create body
+                const tbody = document.createElement('tbody');
+                measurements.forEach((measurement, index) => {
+                    const row = document.createElement('tr');
+                    
+                    // Value
+                    const valueCell = document.createElement('td');
+                    let displayValue = measurement.value;
+                    
+                    // Handle temperature conversion based on user preference
+                    if (categoryName.toLowerCase().includes('temperature') || categoryName.includes('°C') || categoryName.includes('deg C')) {
+                        if (useFahrenheit) {
+                            displayValue = celsiusToFahrenheit(displayValue);
+                            valueCell.textContent = displayValue.toFixed(1) + '°F';
+                        } else {
+                            valueCell.textContent = displayValue.toFixed(1) + '°C';
+                        }
+                    } else {
+                        valueCell.textContent = displayValue.toFixed(2);
+                    }
+                    
+                    valueCell.style.fontWeight = 'bold';
+                    row.appendChild(valueCell);
+                    
+                    // DateTime
+                    const timeCell = document.createElement('td');
+                    timeCell.textContent = formatDateTime(measurement.datetime);
+                    row.appendChild(timeCell);
+                    
+                    tbody.appendChild(row);
+                });
+                table.appendChild(tbody);
+                tableContainer.appendChild(table);
+                dataContainer.appendChild(tableContainer);
+                }
+            });
+            
+            // Update USACE section visibility based on dam category filter
+            if (usaceData) {
+                displayUSACEData(usaceData);
+            }
+            
+            // Check fishing conditions and update background
+            checkFishingConditions(categories, usaceData);
+        }
+        
+        function createCategoryFilters(categories) {
+            const categoryTogglesContainer = document.getElementById('category-toggles');
+            categoryTogglesContainer.innerHTML = '';
+            
+            // Add dam category first if USACE data is available
+            if (usaceData) {
+                const toggle = document.createElement('div');
+                toggle.className = `category-toggle ${visibleCategories[DAM_CATEGORY_KEY] ? 'active' : ''}`;
+                toggle.onclick = () => toggleCategory(DAM_CATEGORY_KEY);
+                
+                const checkbox = document.createElement('div');
+                checkbox.className = `toggle-checkbox ${visibleCategories[DAM_CATEGORY_KEY] ? 'checked' : ''}`;
+                
+                const label = document.createElement('span');
+                label.textContent = '🏗️ ' + DAM_CATEGORY_KEY;
+                
+                toggle.appendChild(checkbox);
+                toggle.appendChild(label);
+                categoryTogglesContainer.appendChild(toggle);
+            }
+            
+            // Add water parameter categories
+            Object.keys(categories).forEach(categoryName => {
+                const toggle = document.createElement('div');
+                toggle.className = `category-toggle ${visibleCategories[categoryName] ? 'active' : ''}`;
+                toggle.onclick = () => toggleCategory(categoryName);
+                
+                const checkbox = document.createElement('div');
+                checkbox.className = `toggle-checkbox ${visibleCategories[categoryName] ? 'checked' : ''}`;
+                
+                const label = document.createElement('span');
+                label.textContent = categoryName;
+                
+                toggle.appendChild(checkbox);
+                toggle.appendChild(label);
+                categoryTogglesContainer.appendChild(toggle);
+            });
+        }
+        
+        function toggleCategory(categoryName) {
+            visibleCategories[categoryName] = !visibleCategories[categoryName];
+            saveSettings(); // Save to localStorage
+            displayTable(currentData); // Refresh display
+        }
+        
+        function toggleAllCategories(show) {
+            Object.keys(visibleCategories).forEach(categoryName => {
+                visibleCategories[categoryName] = show;
+            });
+            
+            // Also toggle dam category if USACE data is available
+            if (usaceData) {
+                visibleCategories[DAM_CATEGORY_KEY] = show;
+            }
+            
+            // Update button states
+            const showAllBtn = document.querySelector('.filter-btn:first-child');
+            const hideAllBtn = document.querySelector('.filter-btn:last-child');
+            
+            if (show) {
+                showAllBtn.classList.add('active');
+                hideAllBtn.classList.remove('active');
+            } else {
+                showAllBtn.classList.remove('active');
+                hideAllBtn.classList.add('active');
+            }
+            
+            saveSettings(); // Save to localStorage
+            displayTable(currentData); // Refresh display
+        }
+        
+        
+        function changePeriod() {
+            const select = document.getElementById('period-select');
+            currentPeriod = select.value;
+            loadWaterData();
+        }
+        
+        function toggleFiltersVisibility() {
+            const categoryFilters = document.getElementById('category-filters');
+            const toggleBtn = document.getElementById('filters-toggle-btn');
+            
+            filtersExpanded = !filtersExpanded;
+            
+            if (filtersExpanded) {
+                categoryFilters.style.display = 'block';
+                toggleBtn.textContent = 'Hide Filters';
+            } else {
+                categoryFilters.style.display = 'none';
+                toggleBtn.textContent = 'Show Filters';
+            }
+            
+            saveSettings(); // Save to localStorage
+        }
+        
+        function toggleTemperatureUnit() {
+            const toggle = document.getElementById('temp-toggle');
+            useFahrenheit = !useFahrenheit;
+            
+            if (useFahrenheit) {
+                toggle.classList.add('fahrenheit');
+            } else {
+                toggle.classList.remove('fahrenheit');
+            }
+            
+            saveSettings(); // Save to localStorage
+            
+            // Refresh display with new temperature unit
+            if (Object.keys(currentData).length > 0) {
+                displayTable(currentData);
+            }
+        }
+        
+        function scrollToTable(categoryName) {
+            // Create a safe ID from the category name
+            const tableId = 'table-' + categoryName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+            const tableElement = document.getElementById(tableId);
+            
+            if (tableElement) {
+                // Expand data tables section if it's collapsed
+                if (!dataTablesExpanded) {
+                    toggleDataTablesVisibility();
+                }
+                
+                // Smooth scroll to the table
+                tableElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start',
+                    inline: 'nearest'
+                });
+                
+                // Add a brief highlight effect
+                tableElement.style.transition = 'background-color 0.3s ease';
+                tableElement.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+                setTimeout(() => {
+                    tableElement.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        function scrollToDamTable() {
+            const damCurrentDayTable = document.getElementById('dam-current-day-table');
+            
+            if (damCurrentDayTable) {
+                // Expand USACE section if it's collapsed
+                if (!usaceExpanded) {
+                    toggleUSACEVisibility();
+                }
+                
+                // Smooth scroll to the Current Day table
+                damCurrentDayTable.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start',
+                    inline: 'nearest'
+                });
+                
+                // Add a brief highlight effect
+                damCurrentDayTable.style.transition = 'background-color 0.3s ease';
+                damCurrentDayTable.style.backgroundColor = 'rgba(102, 126, 234, 0.1)';
+                setTimeout(() => {
+                    damCurrentDayTable.style.backgroundColor = '';
+                }, 1000);
+            }
+        }
+        
+        function toggleSummaryVisibility() {
+            const summaryCardsContainer = document.getElementById('summary-cards');
+            const toggleBtn = document.getElementById('summary-toggle-btn');
+            
+            summaryExpanded = !summaryExpanded;
+            
+            if (summaryExpanded) {
+                summaryCardsContainer.style.display = 'grid';
+                toggleBtn.textContent = 'Hide Summary';
+            } else {
+                summaryCardsContainer.style.display = 'none';
+                toggleBtn.textContent = 'Show Summary';
+            }
+            
+            saveSettings(); // Save to localStorage
+        }
+        
+        function toggleDataTablesVisibility() {
+            const dataContainer = document.getElementById('data-container');
+            const toggleBtn = document.getElementById('data-tables-toggle-btn');
+            
+            dataTablesExpanded = !dataTablesExpanded;
+            
+            if (dataTablesExpanded) {
+                dataContainer.style.display = 'block';
+                toggleBtn.textContent = 'Hide Tables';
+            } else {
+                dataContainer.style.display = 'none';
+                toggleBtn.textContent = 'Show Tables';
+            }
+            
+            saveSettings(); // Save to localStorage
+        }
+        
+        function toggleUSACEVisibility() {
+            const generationTables = document.getElementById('generation-tables');
+            const usaceInfo = document.getElementById('usace-info');
+            const toggleBtn = document.getElementById('usace-toggle-btn');
+            
+            usaceExpanded = !usaceExpanded;
+            
+            if (usaceExpanded) {
+                generationTables.style.display = 'block';
+                usaceInfo.style.display = 'block';
+                toggleBtn.textContent = 'Hide Dam Data';
+            } else {
+                generationTables.style.display = 'none';
+                usaceInfo.style.display = 'none';
+                toggleBtn.textContent = 'Show Dam Data';
+            }
+            
+            saveSettings(); // Save to localStorage
+        }
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSavedSettings(); // Load saved settings first
+            
+            // Update filters button text based on saved state
+            const filtersToggleBtn = document.getElementById('filters-toggle-btn');
+            if (filtersExpanded) {
+                filtersToggleBtn.textContent = 'Hide Filters';
+            } else {
+                filtersToggleBtn.textContent = 'Show Filters';
+            }
+            
+            // Update summary button text based on saved state
+            const summaryToggleBtn = document.getElementById('summary-toggle-btn');
+            if (summaryExpanded) {
+                summaryToggleBtn.textContent = 'Hide Summary';
+            } else {
+                summaryToggleBtn.textContent = 'Show Summary';
+            }
+            
+            // Update data tables button text based on saved state
+            const dataTablesToggleBtn = document.getElementById('data-tables-toggle-btn');
+            if (dataTablesExpanded) {
+                dataTablesToggleBtn.textContent = 'Hide Tables';
+            } else {
+                dataTablesToggleBtn.textContent = 'Show Tables';
+            }
+            
+            // Update USACE button text based on saved state
+            const usaceToggleBtn = document.getElementById('usace-toggle-btn');
+            if (usaceExpanded) {
+                usaceToggleBtn.textContent = 'Hide Dam Data';
+            } else {
+                usaceToggleBtn.textContent = 'Show Dam Data';
+            }
+            
+            loadWaterData();
+            loadUSACEData();
+            
+            // Update time displays every minute
+            setInterval(updateTimeSinceUpdate, 60 * 1000);
+        });
+        
+        // Auto-refresh once per hour at the half-hour mark
+        function scheduleHourlyRefresh() {
+            const now = new Date();
+            const currentMinutes = now.getMinutes();
+            const currentSeconds = now.getSeconds();
+            
+            // Calculate milliseconds until next half-hour
+            let minutesToWait;
+            if (currentMinutes < 30) {
+                minutesToWait = 30 - currentMinutes;
+            } else {
+                minutesToWait = 90 - currentMinutes; // Next hour's 30-minute mark
+            }
+            
+            // Subtract current seconds to be precise
+            const millisecondsToWait = (minutesToWait * 60 * 1000) - (currentSeconds * 1000);
+            
+            // Set initial timeout to sync with half-hour
+            setTimeout(() => {
+                loadWaterData();
+                loadUSACEData();
+                
+                // Then set up hourly interval
+                setInterval(() => {
+                    loadWaterData();
+                    loadUSACEData();
+                }, 60 * 60 * 1000); // Every hour
+            }, millisecondsToWait);
+        }
+        
+        scheduleHourlyRefresh();
+    </script>
+</body>
+</html>
