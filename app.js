@@ -1110,6 +1110,9 @@ function displayUSACEData(data) {
         function checkFishingConditions(categories, usaceData) {
             let turbidityGood = false;
             let gageHeightGood = false;
+            let streamflowGood = false;
+            let streamflowModerate = false;
+            let streamflowHigh = false;
             let generationHoursAbove5 = 0;
 
             const now = new Date();
@@ -1129,8 +1132,19 @@ function displayUSACEData(data) {
                         gageHeightGood = recentMeasurements.every((m) => m.value < 4);
                     }
                 }
+
+                if (categoryName.toLowerCase().includes('streamflow') && measurements.length > 0) {
+                    const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
+                    if (recentMeasurements.length > 0) {
+                        streamflowGood = recentMeasurements.every((m) => m.value < 1000);
+                        streamflowHigh = recentMeasurements.some((m) => m.value >= 3000);
+                        streamflowModerate =
+                            !streamflowHigh && !streamflowGood && recentMeasurements.some((m) => m.value >= 1000);
+                    }
+                }
             });
 
+            let isCurrentlyGeneratingAbove5 = false;
             if (usaceData?.schedules) {
                 const today = new Date();
                 const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
@@ -1138,7 +1152,6 @@ function displayUSACEData(data) {
 
                 if (Array.isArray(schedule?.periods)) {
                     const currentHour = today.getHours();
-                    let isCurrentlyGeneratingAbove5 = false;
 
                     schedule.periods.slice(0, 24).forEach((period) => {
                         const timeMatch = period?.time?.match(/(\d+):00 (am|pm)/);
@@ -1151,7 +1164,7 @@ function displayUSACEData(data) {
                         }
                     });
 
-                    if (isCurrentlyGeneratingAbove5 && !Storage.getGenerationTriggerTime()) {
+                    if (isCurrentlyGeneratingAbove5) {
                         Storage.setGenerationTriggerTime(now.getTime().toString());
                     }
 
@@ -1179,12 +1192,16 @@ function displayUSACEData(data) {
             }
 
             let shouldShowOrangeBackground = false;
+            let shouldShowRedBackground = isCurrentlyGeneratingAbove5;
             const triggerTime = Storage.getGenerationTriggerTime();
             if (triggerTime) {
                 const triggerTimestamp = parseInt(triggerTime, 10);
                 const hoursElapsed = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
                 if (hoursElapsed <= 4.5) {
                     shouldShowOrangeBackground = true;
+                }
+                if (hoursElapsed <= 14) {
+                    shouldShowRedBackground = true;
                 } else {
                     Storage.clearGenerationTriggerTime();
                 }
@@ -1195,18 +1212,24 @@ function displayUSACEData(data) {
             let indicatorText = '';
             let indicatorColor = '';
 
-            if (turbidityGood && gageHeightGood && shouldShowOrangeBackground) {
+            const cautionOrange =
+                turbidityGood && gageHeightGood && streamflowGood && shouldShowOrangeBackground;
+            const streamflowOrange =
+                !shouldShowRedBackground && !shouldShowOrangeBackground &&
+                turbidityGood && gageHeightGood && streamflowModerate;
+
+            if (cautionOrange || streamflowOrange) {
                 backgroundColor = 'rgba(255, 152, 0, 0.5)';
                 indicatorText = '⚠️ Caution: Recent Generation Activity';
                 indicatorColor = 'rgba(255, 152, 0, 0.9)';
-            } else if (turbidityGood && gageHeightGood && generationHoursAbove5 === 0 && !shouldShowOrangeBackground) {
-                backgroundColor = 'rgba(76, 175, 80, 0.5)';
-                indicatorText = '🎣 Excellent Fishing Conditions!';
-                indicatorColor = 'rgba(76, 175, 80, 0.9)';
-            } else if (!gageHeightGood || (generationHoursAbove5 > 1 && generationHoursAbove5 < 14)) {
+            } else if (!gageHeightGood || streamflowHigh || shouldShowRedBackground) {
                 backgroundColor = 'rgba(244, 67, 54, 0.5)';
                 indicatorText = '🚫 Poor Fishing: High Water';
                 indicatorColor = 'rgba(244, 67, 54, 0.9)';
+            } else if (turbidityGood && gageHeightGood && streamflowGood) {
+                backgroundColor = 'rgba(76, 175, 80, 0.5)';
+                indicatorText = '🎣 Excellent Fishing Conditions!';
+                indicatorColor = 'rgba(76, 175, 80, 0.9)';
             }
 
             const existingIndicator = document.querySelector('.fishing-conditions-indicator');

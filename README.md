@@ -6,9 +6,9 @@ An advanced HTML dashboard that displays real-time water conditions and provides
 
 ### 🎣 Intelligent Fishing Conditions
 - **Smart Background Colors**: Visual indicators for fishing conditions
-  - 🟢 **Green**: Excellent fishing conditions (Low turbidity, normal water level, no dam generation)
-  - 🟠 **Orange**: Caution conditions (Good water quality but recent dam generation activity)
-  - 🔴 **Red**: Poor fishing conditions (High water levels or extended dam generation)
+- 🟢 **Green**: Excellent fishing conditions (Low turbidity, normal water level, low streamflow, no recent dam generation)
+- 🟠 **Orange**: Caution conditions (Good water quality with recent dam generation or elevated streamflow)
+- 🔴 **Red**: Poor fishing conditions (High water levels, high streamflow, or extended dam generation)
 - **Real-time Analysis**: Automatically evaluates turbidity, gage height, and dam generation patterns
 - **Condition Notifications**: Floating indicators with specific fishing advice
 
@@ -37,16 +37,25 @@ An advanced HTML dashboard that displays real-time water conditions and provides
 ### Green Background (Excellent Fishing)
 - Turbidity < 10 NTU for past hour **AND**
 - Gage Height < 4 ft for past hour **AND**
-- Dam generation below 5 MW for last 14 hours
+- Streamflow < 1000 ft³/s for past hour **AND**
+- No dam generation ≥ 5 MW recorded in the last 14 hours
 
 ### Orange Background (Caution)
 - Turbidity < 10 NTU for past hour **AND**
 - Gage Height < 4 ft for past hour **AND**
-- Dam generation above 5 MW within last 1-4 hours
+- Streamflow < 1000 ft³/s for past hour **AND**
+- Dam generation ≥ 5 MW occurred within the last ~4.5 hours
+  
+  **OR**
+
+- Turbidity < 10 NTU for past hour **AND**
+- Gage Height < 4 ft for past hour **AND**
+- Streamflow between 1000 and 2999 ft³/s for past hour
 
 ### Red Background (Poor Fishing)
-- Gage Height > 4 ft for past hour **OR**
-- Dam generation above 5 MW for 1-14 hours
+- Gage Height ≥ 4 ft for past hour **OR**
+- Streamflow ≥ 3000 ft³/s for past hour **OR**
+- Dam generation ≥ 5 MW is active or was recorded within the last 14 hours
 
 ## Usage
 
