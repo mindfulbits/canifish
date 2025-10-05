@@ -841,57 +841,122 @@ function displayUSACEData(data) {
                     categoryName.includes('°C') ||
                     categoryName.includes('deg C');
 
-                let latest = measurements[0].value;
-                const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
-                let compareValue = measurements[measurements.length - 1].value;
-                let actualTimeSpan = 3;
-
-                for (let i = measurements.length - 1; i >= 0; i--) {
-                    const measurementTime = new Date(measurements[i].datetime);
-                    if (measurementTime >= threeHoursAgo) {
-                        compareValue = measurements[i].value;
-                        const latestTime = new Date(measurements[0].datetime);
-                        actualTimeSpan = (latestTime - measurementTime) / (1000 * 60 * 60);
-                        break;
-                    }
-                }
-
-                if (isTemperature && preferFahrenheit) {
-                    latest = Utils.celsiusToFahrenheit(latest);
-                    compareValue = Utils.celsiusToFahrenheit(compareValue);
-                }
-
-                const difference = latest - compareValue;
-                const percentChange = Math.abs(compareValue) > 0 ? Math.abs((difference / compareValue) * 100) : 0;
-                const ratePerHour = actualTimeSpan > 0 ? difference / actualTimeSpan : 0;
-
-                if (percentChange < 2) {
-                    trendArrow.textContent = '→';
+                const latestTime = new Date(measurements[0].datetime);
+                if (Number.isNaN(latestTime.getTime())) {
+                    trendArrow.textContent = '?';
                     trendArrow.classList.add('trend-stable');
-                    trendText.textContent = 'Stable';
+                    trendText.textContent = 'Unknown';
                     trendText.classList.add('trend-stable');
-                    trendText.title = 'Trend over past 3hr';
-                    trendText.style.cursor = 'help';
-                    rateOfChange.textContent = `±${Math.abs(ratePerHour).toFixed(2)}/hr`;
+                    rateOfChange.textContent = 'N/A';
                     rateOfChange.classList.add('trend-stable');
-                } else if (difference > 0) {
-                    trendArrow.textContent = '↗';
-                    trendArrow.classList.add('trend-up');
-                    trendText.textContent = 'Rising';
-                    trendText.classList.add('trend-up');
-                    trendText.title = 'Trend over past 3hr';
-                    trendText.style.cursor = 'help';
-                    rateOfChange.textContent = `+${ratePerHour.toFixed(2)}/hr`;
-                    rateOfChange.classList.add('trend-up');
                 } else {
-                    trendArrow.textContent = '↘';
-                    trendArrow.classList.add('trend-down');
-                    trendText.textContent = 'Falling';
-                    trendText.classList.add('trend-down');
-                    trendText.title = 'Trend over past 3hr';
-                    trendText.style.cursor = 'help';
-                    rateOfChange.textContent = `${ratePerHour.toFixed(2)}/hr`;
-                    rateOfChange.classList.add('trend-down');
+                    const windowStart = new Date(latestTime.getTime() - 3 * 60 * 60 * 1000);
+
+                    const toDisplayValue = (rawValue) => {
+                        if (isTemperature && preferFahrenheit) {
+                            return Utils.celsiusToFahrenheit(rawValue);
+                        }
+                        return rawValue;
+                    };
+
+                    let latestValue = toDisplayValue(measurements[0].value);
+                    let baselineValue = latestValue;
+                    let totalDiff = 0;
+                    let totalHours = 0;
+
+                    let prevTime = latestTime;
+                    let prevValue = latestValue;
+
+                    for (let i = 1; i < measurements.length && totalHours < 3; i++) {
+                        const currentTime = new Date(measurements[i].datetime);
+                        if (Number.isNaN(currentTime.getTime()) || currentTime > prevTime) {
+                            continue;
+                        }
+
+                        const currentValue = toDisplayValue(measurements[i].value);
+                        const segmentHours = (prevTime - currentTime) / (1000 * 60 * 60);
+                        if (segmentHours <= 0) {
+                            prevTime = currentTime;
+                            prevValue = currentValue;
+                            continue;
+                        }
+
+                        if (currentTime <= windowStart) {
+                            const hoursWithinWindow = (prevTime - windowStart) / (1000 * 60 * 60);
+                            const totalSegmentHours = segmentHours;
+
+                            let valueAtWindowStart = currentValue;
+                            if (totalSegmentHours > 0) {
+                                const ratio = hoursWithinWindow / totalSegmentHours;
+                                valueAtWindowStart = prevValue - (prevValue - currentValue) * ratio;
+                            }
+
+                            totalDiff += prevValue - valueAtWindowStart;
+                            totalHours += hoursWithinWindow;
+                            baselineValue = valueAtWindowStart;
+                            break;
+                        } else {
+                            totalDiff += prevValue - currentValue;
+                            totalHours += segmentHours;
+                            baselineValue = currentValue;
+                            prevTime = currentTime;
+                            prevValue = currentValue;
+                        }
+                    }
+
+                    totalHours = Math.min(totalHours, 3);
+
+                    if (totalHours <= 0) {
+                        trendArrow.textContent = '?';
+                        trendArrow.classList.add('trend-stable');
+                        trendText.textContent = 'Unknown';
+                        trendText.classList.add('trend-stable');
+                        rateOfChange.textContent = 'N/A';
+                        rateOfChange.classList.add('trend-stable');
+                    } else {
+                        const difference = latestValue - baselineValue;
+                        const percentChange = Math.abs(baselineValue) > 0 ? Math.abs((difference / baselineValue) * 100) : 0;
+                        const ratePerHour = totalDiff / totalHours;
+                        const trendTitle = 'Average change over past 3 hours';
+
+                        if (percentChange < 2) {
+                            trendArrow.textContent = '→';
+                            trendArrow.classList.add('trend-stable');
+                            trendText.textContent = 'Stable';
+                            trendText.classList.add('trend-stable');
+                            trendText.title = trendTitle;
+                            trendText.style.cursor = 'help';
+                            rateOfChange.textContent = `±${Math.abs(ratePerHour).toFixed(2)} avg/hr`;
+                            rateOfChange.classList.add('trend-stable');
+                        } else if (ratePerHour > 0) {
+                            trendArrow.textContent = '↗';
+                            trendArrow.classList.add('trend-up');
+                            trendText.textContent = 'Rising';
+                            trendText.classList.add('trend-up');
+                            trendText.title = trendTitle;
+                            trendText.style.cursor = 'help';
+                            rateOfChange.textContent = `+${ratePerHour.toFixed(2)} avg/hr`;
+                            rateOfChange.classList.add('trend-up');
+                        } else if (ratePerHour < 0) {
+                            trendArrow.textContent = '↘';
+                            trendArrow.classList.add('trend-down');
+                            trendText.textContent = 'Falling';
+                            trendText.classList.add('trend-down');
+                            trendText.title = trendTitle;
+                            trendText.style.cursor = 'help';
+                            rateOfChange.textContent = `${ratePerHour.toFixed(2)} avg/hr`;
+                            rateOfChange.classList.add('trend-down');
+                        } else {
+                            trendArrow.textContent = '→';
+                            trendArrow.classList.add('trend-stable');
+                            trendText.textContent = 'Stable';
+                            trendText.classList.add('trend-stable');
+                            trendText.title = trendTitle;
+                            trendText.style.cursor = 'help';
+                            rateOfChange.textContent = '0.00 avg/hr';
+                            rateOfChange.classList.add('trend-stable');
+                        }
+                    }
                 }
             } else {
                 trendArrow.textContent = '?';
