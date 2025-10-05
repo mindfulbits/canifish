@@ -92,15 +92,44 @@ The dashboard shows comprehensive water quality and operational parameters:
 - **Dissolved Oxygen**: Oxygen content in water
 - **Dam Generation**: Power output from Buford Dam in megawatts
 
+## Project Structure
+
+```
+├── index.html
+├── assets/
+│   ├── css/
+│   │   └── styles.css
+│   ├── js/
+│   │   └── app.js
+│   └── icons/
+│       ├── apple-touch-icon.png
+│       ├── favicon-16x16.png
+│       ├── favicon-32x32.png
+│       ├── favicon.ico
+│       ├── android-chrome-192x192.png
+│       ├── android-chrome-512x512.png
+│       └── safari-pinned-tab.svg
+├── site.webmanifest
+└── docs/
+    └── INDEX_REVIEW.md
+```
+
+- `index.html` contains the full dashboard markup and links to all external assets.
+- `assets/css/styles.css` holds all layout, typography, and responsive rules.
+- `assets/js/app.js` manages data fetching, state handling, and UI interactions.
+- `assets/icons/` stores favicon and installability icons referenced by `index.html` and `site.webmanifest`.
+- `site.webmanifest` exposes install metadata for browsers and devices.
+- `docs/INDEX_REVIEW.md` captures the latest manual review notes and priorities.
+
 ## Technical Details
 
 - Pure HTML, CSS, and JavaScript (no external dependencies)
 - Uses the Fetch API for HTTP requests
-- Responsive CSS Grid layout
+- Responsive CSS Grid layout with breakpoints defined in `assets/css/styles.css`
 - Error handling for network issues
 - Multiple CORS proxy fallbacks for API access
 - Demo data mode when live API is unavailable
-- Progressive web app manifest with favicons and platform icons for better installability
+- Progressive web app manifest via `site.webmanifest`, aligned with icons in `assets/icons/`
 
 ## CORS Issues & Solutions
 
