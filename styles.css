@@ -222,7 +222,6 @@ background: #667eea;
 
 .temp-toggle-input:checked + .temp-toggle-slider {
 transform: translateX(26px);
-background: #667eea;
 color: #fff;
 }
 

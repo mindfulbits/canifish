@@ -502,14 +502,26 @@ function displayUSACEData(data) {
     const generationTables = UI.DOM.generationTables();
     const usaceSection = UI.DOM.usaceSection();
     const usaceInfo = UI.DOM.usaceInfo();
+    const usaceSkeleton = UI.DOM.usaceSkeleton();
 
     if (!currentStatus || !generationTables || !usaceSection || !usaceInfo) return;
+
+    if (usaceSkeleton) {
+        usaceSkeleton.hidden = true;
+        usaceSkeleton.setAttribute('aria-hidden', 'true');
+        usaceSkeleton.style.display = 'none';
+    }
 
     generationTables.innerHTML = '';
 
     const visibleCategories = AppState.getVisibleCategories();
     if (!visibleCategories[DAM_CATEGORY_KEY]) {
         usaceSection.style.display = 'none';
+        if (usaceSkeleton) {
+            usaceSkeleton.hidden = true;
+            usaceSkeleton.setAttribute('aria-hidden', 'true');
+            usaceSkeleton.style.display = 'none';
+        }
         return;
     }
 
