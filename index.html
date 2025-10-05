@@ -18,7 +18,7 @@
     <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="container">
         <header class="header" role="banner">
-            <h1>🎣 Can I Fish</h1>
+            <h1>🎣 Can I Fish <span class="badge badge-alpha" aria-label="Alpha release">Alpha</span></h1>
             <p>Real-time Water Conditions Dashboard</p>
         </header>
 
@@ -30,7 +30,7 @@
             </section>
 
             <section class="controls" aria-label="Data controls">
-            <button class="btn" onclick="loadWaterData()">🔄 Refresh Data</button>
+            <button class="btn" onclick="loadWaterData()">Refresh Data</button>
             <label for="period-select" class="sr-only">Select data period</label>
             <select class="period-select" id="period-select" onchange="changePeriod()">
                 <option value="PT3H" selected>Last 3 Hours</option>
@@ -42,7 +42,6 @@
                 <option value="P30D">Last 30 Days</option>
             </select>
             <div class="temp-unit-toggle" role="group" aria-label="Temperature unit toggle">
-                <span class="temp-unit-label" aria-hidden="true">🌡️</span>
                 <span class="temp-unit-text" aria-hidden="true">°C</span>
                 <label class="temp-toggle-switch">
                     <span class="sr-only">Toggle temperature units between Celsius and Fahrenheit</span>
@@ -61,7 +60,7 @@
         <div id="error" class="error" role="alert" aria-live="assertive" style="display: none;"></div>
 
         <div id="category-filters" class="category-filters" style="display: none;" role="region" aria-label="Category filters">
-            <div class="filters-title">📊 Category Filters</div>
+            <div class="filters-title">Category Filters</div>
             <div id="filters-content" class="filters-content expanded">
                 <div class="filter-controls">
                     <button class="filter-btn active" onclick="toggleAllCategories(true)">Show All</button>
@@ -75,7 +74,7 @@
 
         <div id="summary-cards-section" class="summary-cards-section" style="display: none;" role="region" aria-label="Current conditions summary">
             <div class="summary-cards-header">
-                <div class="summary-cards-title">📊 Current Conditions</div>
+                <div class="summary-cards-title">Current Conditions</div>
                 <button class="summary-toggle-btn" id="summary-toggle-btn" onclick="toggleSummaryVisibility()">Hide Summary</button>
             </div>
             <div id="summary-skeletons" class="summary-cards-container skeleton-container" aria-hidden="true" hidden>
@@ -95,7 +94,7 @@
 
         <div id="data-tables-section" class="data-tables-section" style="display: none;" role="region" aria-label="Historical data tables">
             <div class="data-tables-header">
-                <div class="data-tables-title">📋 Historical Data Tables</div>
+                <div class="data-tables-title">Historical Data Tables</div>
                 <button class="data-tables-toggle-btn" id="data-tables-toggle-btn" onclick="toggleDataTablesVisibility()">Hide Tables</button>
             </div>
             <div id="tables-skeleton" class="table-skeleton" aria-hidden="true" hidden>
@@ -109,7 +108,7 @@
         <div id="usace-section" class="usace-section" style="display: none;" role="region" aria-label="Dam generation schedule">
             <div class="usace-header">
                 <div>
-                    <div class="usace-title">🏗️ Dam Generation Schedule</div>
+                    <div class="usace-title">Dam Generation Schedule</div>
                     <div class="usace-subtitle">Buford Dam/Lake Sidney Lanier - USACE</div>
                 </div>
                 <div class="usace-controls">
