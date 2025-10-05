@@ -21,7 +21,7 @@ An advanced HTML dashboard that displays real-time water conditions and provides
 ### 📊 Enhanced Data Visualization
 - **Summary Cards**: Quick overview of key parameters with trend indicators
 - **Trend Analysis**: 3-hour trend arrows showing parameter direction
-- **Rate of Change**: Precise measurements of how conditions are changing
+- **Rate of Change**: Average change per hour over the last 3 hours with stability, rising, and falling cues
 - **Interactive Filters**: Toggle visibility of different data categories
 - **Temperature Units**: Switch between Celsius and Fahrenheit
 
@@ -100,6 +100,7 @@ The dashboard shows comprehensive water quality and operational parameters:
 - Error handling for network issues
 - Multiple CORS proxy fallbacks for API access
 - Demo data mode when live API is unavailable
+- Progressive web app manifest with favicons and platform icons for better installability
 
 ## CORS Issues & Solutions
 
