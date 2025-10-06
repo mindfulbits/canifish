@@ -26,7 +26,7 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 - **Summary Cards**: Quick overview of key parameters with condition-based color coding
 - **Trend Analysis**: 3-hour trend arrows showing parameter direction in dedicated indicators
 - **Rate of Change**: Average change per hour over the last 3 hours with stability, rising, and falling cues
-- **Color-Coded Values**: Latest values display in green (good), orange (caution), or red (poor) based on fishing conditions
+- **Color-Coded Values**: Latest values and dam generation display in green (good), orange (caution), or red (poor) based on fishing conditions
 - **Interactive Filters**: Toggle visibility of different data categories
 - **Temperature Units**: Switch between Celsius and Fahrenheit
 
@@ -83,6 +83,11 @@ Latest values in summary cards are color-coded based on fishing condition thresh
 - 🟠 **Orange (Caution)**: 40 - 45°F or 65 - 67°F
 - 🔴 **Red (Poor)**: < 40°F or > 67°F
 
+### Dam Generation
+- 🟢 **Green (Good)**: < 5 MW with no high generation activity in last 8 hours
+- 🟠 **Orange (Caution)**: < 5 MW with high generation activity in last 4-8 hours
+- 🔴 **Red (Poor)**: ≥ 5 MW or high generation activity within last 6 hours
+
 ## Usage
 
 Simply open `index.html` in any modern web browser. The dashboard will automatically:
@@ -116,7 +121,7 @@ The dashboard shows comprehensive water quality and operational parameters:
 - **Turbidity**: Water clarity measurement
 - **pH Levels**: Water acidity/alkalinity
 - **Dissolved Oxygen**: Oxygen content in water
-- **Dam Generation**: Power output from Buford Dam in megawatts
+- **Dam Generation**: Power output from Buford Dam in megawatts with condition-based coloring
 
 ## Project Structure
 
