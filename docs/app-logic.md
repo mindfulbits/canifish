@@ -80,7 +80,7 @@ class = good
 - Buford Dam Generation < 5 MW is not active or was recorded within the last 8 hours
 
 class = caution
-- Buford Dam Generation < 5 MW is not active or was recorded within the last 4 hours
+- Buford Dam Generation ≥ 5 MW is active or was recorded within the last 8 hours
 
 class = poor
-- Buford Dam Generation ≥ 5 MW is active or was recorded within the last 6 hours
+- Buford Dam Generation < 5 MW is not active or was recorded within the last 8 hours

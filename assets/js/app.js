@@ -4,10 +4,9 @@ const AppState = (() => {
     let visibleCategories = {};
     let usaceData = null;
     let filtersExpanded = false;
-    let useFahrenheit = true;
     let summaryExpanded = true;
     let dataTablesExpanded = true;
-    let usaceExpanded = true;
+    let collapsedTables = {};
 
     return {
         getPeriod: () => currentPeriod,
@@ -42,9 +41,9 @@ const AppState = (() => {
         setDataTablesExpanded: (expanded) => {
             dataTablesExpanded = expanded;
         },
-        getUsaceExpanded: () => usaceExpanded,
-        setUsaceExpanded: (expanded) => {
-            usaceExpanded = expanded;
+        getCollapsedTables: () => collapsedTables,
+        setCollapsedTables: (tables) => {
+            collapsedTables = tables;
         }
     };
 })();
@@ -57,7 +56,7 @@ const Storage = (() => {
         useFahrenheit: `${storagePrefix}UseFahrenheit`,
         summaryExpanded: `${storagePrefix}SummaryExpanded`,
         dataTablesExpanded: `${storagePrefix}DataTablesExpanded`,
-        usaceExpanded: `${storagePrefix}UsaceExpanded`,
+        collapsedTables: `${storagePrefix}CollapsedTables`,
         generationTriggerTime: `${storagePrefix}GenerationTriggerTime`
     };
 
@@ -96,17 +95,17 @@ const Storage = (() => {
             const dataTablesExpanded = loadJSON(storageKeys.dataTablesExpanded, true);
             AppState.setDataTablesExpanded(dataTablesExpanded);
 
-            const usaceExpanded = loadJSON(storageKeys.usaceExpanded, true);
-            AppState.setUsaceExpanded(usaceExpanded);
+            const collapsedTables = loadJSON(storageKeys.collapsedTables, {});
+            AppState.setCollapsedTables(collapsedTables);
         },
         saveSettings() {
-            const { getVisibleCategories, getFiltersExpanded, getUseFahrenheit, getSummaryExpanded, getDataTablesExpanded, getUsaceExpanded } = AppState;
+            const { getVisibleCategories, getFiltersExpanded, getUseFahrenheit, getSummaryExpanded, getDataTablesExpanded, getCollapsedTables } = AppState;
             saveJSON(storageKeys.visibleCategories, getVisibleCategories());
             saveJSON(storageKeys.filtersExpanded, getFiltersExpanded());
             saveJSON(storageKeys.useFahrenheit, getUseFahrenheit());
             saveJSON(storageKeys.summaryExpanded, getSummaryExpanded());
             saveJSON(storageKeys.dataTablesExpanded, getDataTablesExpanded());
-            saveJSON(storageKeys.usaceExpanded, getUsaceExpanded());
+            saveJSON(storageKeys.collapsedTables, getCollapsedTables());
         },
         getGenerationTriggerTime() {
             return localStorage.getItem(storageKeys.generationTriggerTime);
@@ -170,8 +169,6 @@ const UI = (() => {
         usaceSkeleton: () => document.getElementById('usace-skeleton'),
         filtersToggleBtn: () => document.getElementById('filters-toggle-btn'),
         summaryToggleBtn: () => document.getElementById('summary-toggle-btn'),
-        dataTablesToggleBtn: () => document.getElementById('data-tables-toggle-btn'),
-        usaceToggleBtn: () => document.getElementById('usace-toggle-btn'),
         tempToggleInput: () => document.getElementById('temp-toggle'),
         lastUpdated: () => document.getElementById('last-updated'),
         summarySection: () => document.getElementById('summary-cards-section'),
@@ -225,11 +222,9 @@ const UI = (() => {
     }
 
     function syncToggleStates() {
-        const { getFiltersExpanded, getSummaryExpanded, getDataTablesExpanded, getUsaceExpanded, getUseFahrenheit } = AppState;
+        const { getFiltersExpanded, getSummaryExpanded, getUseFahrenheit } = AppState;
         const filtersBtn = DOM.filtersToggleBtn();
         const summaryBtn = DOM.summaryToggleBtn();
-        const tablesBtn = DOM.dataTablesToggleBtn();
-        const usaceBtn = DOM.usaceToggleBtn();
         const tempToggleInput = DOM.tempToggleInput();
 
         if (filtersBtn) {
@@ -238,14 +233,6 @@ const UI = (() => {
 
         if (summaryBtn) {
             summaryBtn.textContent = getSummaryExpanded() ? 'Hide Summary' : 'Show Summary';
-        }
-
-        if (tablesBtn) {
-            tablesBtn.textContent = getDataTablesExpanded() ? 'Hide Tables' : 'Show Tables';
-        }
-
-        if (usaceBtn) {
-            usaceBtn.textContent = getUsaceExpanded() ? 'Hide Dam Data' : 'Show Dam Data';
         }
 
         if (tempToggleInput) {
@@ -539,9 +526,6 @@ function displayUSACEData(data) {
     }
 
     usaceSection.style.display = 'block';
-    const usaceExpanded = AppState.getUsaceExpanded();
-    UI.toggleSectionVisibility(generationTables, usaceExpanded);
-    UI.toggleSectionVisibility(usaceInfo, usaceExpanded);
 
     const today = new Date();
     const currentHour = today.getHours();
@@ -564,7 +548,7 @@ function displayUSACEData(data) {
         const schedule = data.schedules?.[key];
         if (!schedule || !Array.isArray(schedule.periods)) return;
 
-        const tableContainer = createDayTable(schedule, date, label, currentHour, key === dates[1].key);
+        const tableContainer = createDayTable(schedule, date, label, currentHour, key === dates[1].key, key);
         generationTables.appendChild(tableContainer);
 
         if (key === dates[1].key) {
@@ -595,13 +579,25 @@ function displayUSACEData(data) {
 }
 
         
-        function createDayTable(schedule, date, label, currentHour, isToday) {
+        function createDayTable(schedule, date, label, currentHour, isToday, key) {
             const container = document.createElement('div');
             container.className = 'table-container';
 
             if (isToday && label === 'Current Day') {
                 container.id = 'dam-current-day-table';
             }
+
+            const collapsedTables = AppState.getCollapsedTables();
+            const collapsedKey = 'usace-' + key;
+            const isCollapsed = collapsedTables[collapsedKey] || false;
+
+            // Create header with title and toggle button
+            const tableHeader = document.createElement('div');
+            tableHeader.className = 'table-header';
+            tableHeader.style.display = 'flex';
+            tableHeader.style.alignItems = 'center';
+            tableHeader.style.justifyContent = 'space-between';
+            tableHeader.style.marginBottom = '15px';
 
             const title = document.createElement('div');
             title.className = 'day-table-title';
@@ -614,10 +610,25 @@ function displayUSACEData(data) {
                     day: 'numeric'
                 })}</span>
             `;
-            container.appendChild(title);
+            tableHeader.appendChild(title);
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.type = 'button';
+            toggleBtn.className = 'table-toggle-btn';
+            toggleBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
+            toggleBtn.style.padding = '4px 8px';
+            toggleBtn.style.fontSize = '0.9em';
+            toggleBtn.style.cursor = 'pointer';
+            toggleBtn.addEventListener('click', () => toggleTableVisibility(collapsedKey));
+            tableHeader.appendChild(toggleBtn);
+
+            container.appendChild(tableHeader);
 
             const table = document.createElement('table');
             table.className = 'generation-table';
+            if (isCollapsed) {
+                table.style.display = 'none';
+            }
 
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
@@ -1065,11 +1076,11 @@ function displayUSACEData(data) {
                 if (currentGen < 5 && (!triggerTime || hoursSinceHighGeneration > 8)) {
                     // Generation currently < 5 MW and no recent high generation (or high generation was >8 hours ago)
                     currentValue.classList.add('good');
+                } else if (currentGen >= 5 || (triggerTime && hoursSinceHighGeneration <= 4)) {
+                    // Generation currently >= 5 MW OR high generation within last 6 hours
+                    currentValue.classList.add('caution');
                 } else if (currentGen < 5 && triggerTime && hoursSinceHighGeneration > 4 && hoursSinceHighGeneration <= 8) {
                     // Generation currently < 5 MW but high generation occurred 4-8 hours ago
-                    currentValue.classList.add('caution');
-                } else if (currentGen >= 5 || (triggerTime && hoursSinceHighGeneration <= 6)) {
-                    // Generation currently >= 5 MW OR high generation within last 6 hours
                     currentValue.classList.add('poor');
                 }
             }
@@ -1473,18 +1484,44 @@ function displayUSACEData(data) {
                     tableContainer.className = 'table-container';
                     tableContainer.id = 'table-' + categoryName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 
+                    const collapsedTables = AppState.getCollapsedTables();
+                    const isCollapsed = collapsedTables[categoryName] || false;
+
+                    // Create header with title and toggle button
+                    const tableHeader = document.createElement('div');
+                    tableHeader.className = 'table-header';
+                    tableHeader.style.display = 'flex';
+                    tableHeader.style.alignItems = 'center';
+                    tableHeader.style.justifyContent = 'space-between';
+                    tableHeader.style.marginBottom = '15px';
+
                     const title = document.createElement('h3');
                     title.textContent = categoryName;
-                    title.style.marginBottom = '15px';
+                    title.style.margin = '0';
                     title.style.color = '#333';
                     if (measurements.originalTitle) {
                         title.title = measurements.originalTitle;
                         title.style.cursor = 'help';
                     }
-                    tableContainer.appendChild(title);
+                    tableHeader.appendChild(title);
+
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.type = 'button';
+                    toggleBtn.className = 'table-toggle-btn';
+                    toggleBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
+                    toggleBtn.style.padding = '4px 8px';
+                    toggleBtn.style.fontSize = '0.9em';
+                    toggleBtn.style.cursor = 'pointer';
+                    toggleBtn.addEventListener('click', () => toggleTableVisibility(categoryName));
+                    tableHeader.appendChild(toggleBtn);
+
+                    tableContainer.appendChild(tableHeader);
 
                     const table = document.createElement('table');
                     table.className = 'data-table';
+                    if (isCollapsed) {
+                        table.style.display = 'none';
+                    }
 
                     const thead = document.createElement('thead');
                     const headerRow = document.createElement('tr');
@@ -1531,6 +1568,9 @@ function displayUSACEData(data) {
                     scrollHint.className = 'table-container-scroll-hint';
                     scrollHint.setAttribute('aria-hidden', 'true');
                     scrollHint.innerHTML = '↔&nbsp;Scroll for more';
+                    if (isCollapsed) {
+                        scrollHint.style.display = 'none';
+                    }
                     tableContainer.appendChild(scrollHint);
 
                     fragment.appendChild(tableContainer);
@@ -1539,7 +1579,6 @@ function displayUSACEData(data) {
 
             const hasTableContent = dataContainer.children.length > 0;
             dataTablesSection.style.display = hasTableContent ? 'block' : 'none';
-            dataContainer.style.display = AppState.getDataTablesExpanded() ? 'block' : 'none';
 
             const tablesSkeleton = UI.DOM.tablesSkeleton();
             if (tablesSkeleton) {
@@ -1656,20 +1695,16 @@ function displayUSACEData(data) {
             displayTable(AppState.getCurrentData());
         }
 
-        function toggleDataTablesVisibility() {
-            const newValue = !AppState.getDataTablesExpanded();
-            AppState.setDataTablesExpanded(newValue);
+        function toggleTableVisibility(categoryName) {
+            const updatedCollapsed = { ...AppState.getCollapsedTables() };
+            updatedCollapsed[categoryName] = !updatedCollapsed[categoryName];
+            AppState.setCollapsedTables(updatedCollapsed);
             Storage.saveSettings();
-            UI.syncToggleStates();
-            displayTable(AppState.getCurrentData());
-        }
-
-        function toggleUSACEVisibility() {
-            const newValue = !AppState.getUsaceExpanded();
-            AppState.setUsaceExpanded(newValue);
-            Storage.saveSettings();
-            UI.syncToggleStates();
-            displayUSACEData(AppState.getUsaceData());
+            if (categoryName.startsWith('usace-')) {
+                displayUSACEData(AppState.getUsaceData());
+            } else {
+                displayTable(AppState.getCurrentData());
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1709,6 +1744,5 @@ function displayUSACEData(data) {
         window.toggleFiltersVisibility = toggleFiltersVisibility;
         window.toggleTemperatureUnit = toggleTemperatureUnit;
         window.toggleSummaryVisibility = toggleSummaryVisibility;
-        window.toggleDataTablesVisibility = toggleDataTablesVisibility;
-        window.toggleUSACEVisibility = toggleUSACEVisibility;
+        window.toggleTableVisibility = toggleTableVisibility;
         window.toggleAllCategories = toggleAllCategories;
