@@ -14,7 +14,7 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 - 🟠 **Orange**: Caution conditions (Good water quality with recent dam generation or elevated streamflow)
 - 🔴 **Red**: Poor fishing conditions (High water levels, high streamflow, or extended dam generation)
 - **Real-time Analysis**: Automatically evaluates turbidity, gage height, and dam generation patterns
-- **Condition Notifications**: Floating indicators with specific fishing advice
+- **Condition Notifications**: Floating indicators with specific fishing advice that appear on page load and data refresh, auto-hiding after 8 seconds
 
 ### 🏗️ Dam Generation Integration
 - **USACE Data**: Real-time Buford Dam generation schedules
@@ -32,7 +32,7 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 ### 🌊 Comprehensive Water Data
 - Real-time water condition data from USGS API
 - Displays detailed measurements for each available parameter
-- Auto-refresh every 5 minutes
+- Auto-refresh every hour
 - Responsive design that works on mobile and desktop
 - Modern, clean interface with dynamic backgrounds
 
@@ -66,7 +66,7 @@ Simply open `index.html` in any modern web browser. The dashboard will automatic
 2. Retrieve current dam generation schedules from USACE
 3. Analyze conditions and apply intelligent fishing recommendations
 4. Display comprehensive data with trend analysis
-5. Auto-refresh all data every 5 minutes
+5. Auto-refresh all data hourly
 
 ## Data Sources
 
