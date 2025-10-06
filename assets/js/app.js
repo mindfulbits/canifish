@@ -367,6 +367,7 @@ function updateTimeSinceUpdate() {
 function getApiEndpoints(period) {
     const baseUrl = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=02335000&period=${period}`;
     return [
+        baseUrl,
         'https://api.allorigins.win/get?url=' + encodeURIComponent(baseUrl),
         'https://corsproxy.io/?' + encodeURIComponent(baseUrl),
         'https://cors-anywhere.herokuapp.com/' + baseUrl
@@ -398,9 +399,14 @@ async function loadWaterData() {
             let data;
             const payload = await response.json();
 
-            if (i === 0 && payload.contents) {
+            if (i === 0) {
+                // Direct USGS API response
+                data = payload;
+            } else if (i === 1 && payload.contents) {
+                // allorigins.win response
                 data = Utils.safeJSONParse(payload.contents);
             } else if (payload.value || payload.name) {
+                // Other proxy responses or direct response
                 data = payload;
             }
 
@@ -458,9 +464,14 @@ async function loadUSACEData() {
                 const response = await fetch(usaceEndpoints[i]);
                 const payload = await response.json();
 
-                if (i === 1 && payload.contents) {
+                if (i === 0) {
+                    // Direct GitHub raw response
+                    data = payload;
+                } else if (i === 1 && payload.contents) {
+                    // allorigins.win response
                     data = Utils.safeJSONParse(payload.contents);
                 } else {
+                    // Other proxy responses
                     data = payload;
                 }
                 if (data) break;
@@ -1175,7 +1186,6 @@ function displayUSACEData(data) {
         }
         
         function checkFishingConditions(categories, usaceData) {
-            console.log('checkFishingConditions called with categories:', Object.keys(categories), 'usaceData:', !!usaceData);
             let turbidityGood = false;
             let turbidityModerate = false;
             let turbidityBad = false;

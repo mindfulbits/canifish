@@ -128,17 +128,22 @@ The dashboard shows comprehensive water quality and operational parameters:
 - Uses the Fetch API for HTTP requests
 - Responsive CSS Grid layout with breakpoints defined in `assets/css/styles.css`
 - Error handling for network issues
-- Multiple CORS proxy fallbacks for API access
+- Direct API access with CORS proxy fallbacks
 - Demo data mode when live API is unavailable
 - Progressive web app manifest via `site.webmanifest`, aligned with icons in `assets/icons/`
 
-## CORS Issues & Solutions
+## API Access & Reliability
 
-The USGS API doesn't allow direct browser access due to CORS restrictions. The dashboard includes several solutions:
+The dashboard prioritizes direct API access to official data sources, with automatic fallbacks for maximum reliability:
 
-1. **CORS Proxies**: Tries multiple proxy services automatically
-2. **Demo Mode**: Shows realistic sample data when API is unavailable
-3. **Local Server**: For best results, serve from a local web server
+1. **Direct API Access**: Primary method using CORS-supported APIs from USGS and GitHub
+2. **CORS Proxy Fallbacks**: Automatic fallback to proxy services if direct access fails
+3. **Error Handling**: Graceful degradation when all endpoints are unavailable
+
+### Data Sources
+- **USGS Water Services**: Direct CORS-enabled API access to real-time water data
+- **USACE Dam Data**: Direct access to GitHub-hosted generation schedules
+- **Proxy Services**: AllOrigins, CORS Proxy, and CORS Anywhere as reliability backups
 
 ### Running with a Local Server
 
