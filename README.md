@@ -2,6 +2,10 @@
 
 An advanced HTML dashboard that displays real-time water conditions and provides intelligent fishing condition analysis for the Chattahoochee River near Norcross, GA (USGS Station 02335000).
 
+## Release Status
+
+CanIFish is currently in **Alpha**. The landing header in `index.html` renders an `Alpha` badge next to the project title to make the release channel clear during testing. Badge styling lives in `assets/css/styles.css` (`.badge`, `.badge-alpha`) so visual treatments remain consistent across the site.
+
 ## Features
 
 ### 🎣 Intelligent Fishing Conditions
@@ -71,7 +75,7 @@ Simply open `index.html` in any modern web browser. The dashboard will automatic
 
 ### USGS Water Services API
 - **Site**: 02335000 (Chattahoochee River near Norcross, GA)
-- **Data Period**: Last 24 hours
+- **Data Period**: Last 3 hours to 30 days
 - **Update Frequency**: Every 15 minutes
 - **Parameters**: Flow, temperature, pH, dissolved oxygen, turbidity, gage height
 
@@ -79,7 +83,7 @@ Simply open `index.html` in any modern web browser. The dashboard will automatic
 - **Dam**: Buford Dam/Lake Sidney Lanier
 - **Data**: Real-time and scheduled power generation
 - **Update Frequency**: Hourly
-- **Coverage**: Current day and next day schedules
+- **Coverage**: Previous day, Current day and next day if available
 
 ## Parameters Displayed
 
