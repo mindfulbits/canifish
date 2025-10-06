@@ -1285,11 +1285,11 @@ function displayUSACEData(data) {
 
             if (isOrange) {
                 backgroundColor = 'rgba(255, 152, 0, 0.5)';
-                indicatorText = '⚠️ Caution: Recent Generation Activity';
+                indicatorText = '⚠️ Caution: Turbidity 8-9 NTU, Streamflow 1000-3000 ft³/s,  or Recent Generation Activity';
                 indicatorColor = 'rgba(255, 152, 0, 0.9)';
             } else if (isRed) {
                 backgroundColor = 'rgba(244, 67, 54, 0.5)';
-                indicatorText = '🚫 Poor Fishing: High Water';
+                indicatorText = '🚫 Poor Fishing: High Water, Turbidity > 9 NTU, or Streamflow > 3000 ft³/s';
                 indicatorColor = 'rgba(244, 67, 54, 0.9)';
             } else if (isGreen) {
                 backgroundColor = 'rgba(76, 175, 80, 0.5)';
