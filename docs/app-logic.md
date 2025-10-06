@@ -44,3 +44,30 @@ Poor  rgba(244, 67, 54, 0.9)
 - Dam generation ≥ 5 MW is active or was recorded within the last 6 hours
 
 
+
+
+
+please use the logic and add an additional class (.good, .caution, .poor) for 'latest-value' and 'dam-current-value' in the summary-cards-section
+
+class = good
+- Gage Height (ft) < 3.5 ft for past hour
+- Turbidity ≤ 8 NTU for past hour
+- Streamflow (ft³/s) ≤ 1000 ft³/s for past hour
+- Temperature (°F) between 45 and 65
+- Buford Dam Generation < 5 MW is not active or was recorded within the last 8 hours
+
+
+class = caution
+- Gage Height (ft) between 3.5 nad 4 ft for past hour
+- Turbidity between 8 and 9 NTU for past hour
+- Streamflow (ft³/s) between 1000 ft³/s and 3000 ft³/s for past hour
+- Temperature (°F) between 40 and 45 or 65 and 67
+- Buford Dam Generation < 5 MW is not active or was recorded within the last 4 hours
+
+
+class = poor
+- Gage Height (ft) > 4 ft for past hour
+- Turbidity ≥ 9 NTU for past hour
+- Streamflow (ft³/s) ≥ 3000 ft³/s for past hour
+- Temperature (°F) below 40 or above 67
+- Buford Dam Generation ≥ 5 MW is active or was recorded within the last 6 hours
