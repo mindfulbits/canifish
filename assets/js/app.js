@@ -1065,8 +1065,8 @@ function displayUSACEData(data) {
                 if (currentGen < 5 && (!triggerTime || hoursSinceHighGeneration > 8)) {
                     // Generation currently < 5 MW and no recent high generation (or high generation was >8 hours ago)
                     currentValue.classList.add('good');
-                } else if (currentGen < 5 && (!triggerTime || hoursSinceHighGeneration > 4)) {
-                    // Generation currently < 5 MW and high generation was >4 hours ago (but <8 hours ago)
+                } else if (currentGen < 5 && triggerTime && hoursSinceHighGeneration > 4 && hoursSinceHighGeneration <= 8) {
+                    // Generation currently < 5 MW but high generation occurred 4-8 hours ago
                     currentValue.classList.add('caution');
                 } else if (currentGen >= 5 || (triggerTime && hoursSinceHighGeneration <= 6)) {
                     // Generation currently >= 5 MW OR high generation within last 6 hours
@@ -1234,7 +1234,6 @@ function displayUSACEData(data) {
         }
         
         function checkFishingConditions(categories, usaceData) {
-            console.log('🔍 checkFishingConditions called with:', { categories: Object.keys(categories), usaceData: !!usaceData });
             let turbidityGood = false;
             let turbidityModerate = false;
             let turbidityBad = false;
@@ -1344,14 +1343,6 @@ function displayUSACEData(data) {
             const isGreen = turbidityGood && gageHeightGood && streamflowGood;
             const isOrange = gageHeightGood && (turbidityModerate || streamflowModerate || shouldShowOrangeBackground);
             const isRed = gageHeightBad || turbidityBad || streamflowHigh;
-
-            console.log('📊 Fishing condition evaluation:', {
-                turbidity: { good: turbidityGood, moderate: turbidityModerate, bad: turbidityBad },
-                gageHeight: { good: gageHeightGood, bad: gageHeightBad },
-                streamflow: { good: streamflowGood, moderate: streamflowModerate, high: streamflowHigh },
-                dam: { shouldShowOrange: shouldShowOrangeBackground },
-                result: { isGreen, isOrange, isRed }
-            });
 
             if (isOrange) {
                 backgroundColor = 'rgba(255, 152, 0, 0.5)';
