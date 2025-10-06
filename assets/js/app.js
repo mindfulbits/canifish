@@ -762,77 +762,97 @@ function displayUSACEData(data) {
             }
         }
         
-        function getFishingConditionColor(categoryName, value, preferFahrenheit) {
-            // Convert temperature to Fahrenheit if needed
-            let displayValue = value;
-            if (categoryName.toLowerCase().includes('temperature') && !preferFahrenheit) {
-                displayValue = Utils.celsiusToFahrenheit(value);
-            }
+        function getConditionClass(categories, usaceData) {
+            // Get current values from the past hour for each parameter
+            let gageHeight = null;
+            let turbidity = null;
+            let streamflow = null;
+            let temperature = null;
+            let damGenerationActive = false;
 
-            // Check conditions for each parameter type
-            if (categoryName.toLowerCase().includes('gage height')) {
-                if (displayValue < 3.5) return 'rgba(76, 175, 80, 0.9)'; // Good - green
-                if (displayValue >= 3.5 && displayValue <= 4) return 'rgba(255, 152, 0, 0.5)'; // Caution - orange
-                if (displayValue > 4) return 'rgba(244, 67, 54, 0.9)'; // Poor - red
-            }
-            
-            if (categoryName.toLowerCase().includes('turbidity')) {
-                if (displayValue <= 8) return 'rgba(76, 175, 80, 0.9)'; // Good - green
-                if (displayValue > 8 && displayValue < 9) return 'rgba(255, 152, 0, 0.5)'; // Caution - orange
-                if (displayValue >= 9) return 'rgba(244, 67, 54, 0.9)'; // Poor - red
-            }
-            
-            if (categoryName.toLowerCase().includes('streamflow')) {
-                if (displayValue <= 1000) return 'rgba(76, 175, 80, 0.9)'; // Good - green
-                if (displayValue > 1000 && displayValue < 3000) return 'rgba(255, 152, 0, 0.5)'; // Caution - orange
-                if (displayValue >= 3000) return 'rgba(244, 67, 54, 0.9)'; // Poor - red
-            }
-            
-            if (categoryName.toLowerCase().includes('temperature')) {
-                if (displayValue >= 45 && displayValue <= 65) return 'rgba(76, 175, 80, 0.9)'; // Good - green
-                if ((displayValue >= 40 && displayValue < 45) || (displayValue > 65 && displayValue <= 67)) return 'rgba(255, 152, 0, 0.5)'; // Caution - orange
-                if (displayValue < 40 || displayValue > 67) return 'rgba(244, 67, 54, 0.9)'; // Poor - red
-            }
-            
-            return null; // No color for other parameters
-        }
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
-        function getDamFishingConditionColor(generation) {
-            // Check if generation is above 5 MW and within time windows
-            const triggerTime = Storage.getGenerationTriggerTime();
-            let recentlyActive = false;
-            
-            if (triggerTime) {
-                const triggerTimestamp = parseInt(triggerTime, 10);
-                const hoursElapsed = (new Date().getTime() - triggerTimestamp) / (1000 * 60 * 60);
-                
-                // Good: Not active in last 8 hours
-                // Caution: Not active in last 4 hours  
-                // Poor: Active in last 6 hours
-                if (hoursElapsed <= 8) {
-                    if (hoursElapsed <= 6) {
-                        recentlyActive = true; // Poor condition
-                    } else if (hoursElapsed <= 4) {
-                        recentlyActive = true; // Caution condition
-                    } else {
-                        recentlyActive = false; // Good condition
+            // Check each category for recent measurements
+            Object.entries(categories).forEach(([categoryName, measurements]) => {
+                if (!measurements || measurements.length === 0) return;
+
+                const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
+                if (recentMeasurements.length === 0) return;
+
+                const latestValue = recentMeasurements[0].value;
+
+                if (categoryName.toLowerCase().includes('gage height')) {
+                    gageHeight = latestValue;
+                } else if (categoryName.toLowerCase().includes('turbidity')) {
+                    turbidity = latestValue;
+                } else if (categoryName.toLowerCase().includes('streamflow')) {
+                    streamflow = latestValue;
+                } else if (categoryName.toLowerCase().includes('temperature')) {
+                    temperature = latestValue;
+                }
+            });
+
+            // Check dam generation activity
+            if (usaceData?.schedules) {
+                const today = new Date();
+                const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+
+                const triggerTime = Storage.getGenerationTriggerTime();
+                if (triggerTime) {
+                    const triggerTimestamp = parseInt(triggerTime, 10);
+                    const hoursElapsed = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
+                    if (hoursElapsed <= 8) { // Active within last 8 hours
+                        damGenerationActive = true;
                     }
                 }
-            }
-            
-            if (generation >= 5) {
-                if (recentlyActive) {
-                    return 'rgba(244, 67, 54, 0.9)'; // Poor - red (currently active AND recently active)
-                } else {
-                    return 'rgba(244, 67, 54, 0.9)'; // Poor - red (currently active)
+
+                // Also check current generation level
+                const schedule = usaceData.schedules[todayStr];
+                if (Array.isArray(schedule?.periods)) {
+                    const currentHour = today.getHours();
+                    schedule.periods.forEach((period) => {
+                        const timeMatch = period?.time?.match(/(\d+):00 (am|pm)/);
+                        if (!timeMatch) return;
+                        let hour = parseInt(timeMatch[1], 10);
+                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                        if (hour === currentHour && period.generation >= 5) {
+                            damGenerationActive = true;
+                        }
+                    });
                 }
-            } else {
-                if (!recentlyActive) {
-                    return 'rgba(76, 175, 80, 0.9)'; // Good - green (not active and not recently active)
-                } else {
-                    return 'rgba(255, 152, 0, 0.5)'; // Caution - orange (not currently active but recently active)
-                }
             }
+
+            // Evaluate conditions for "good"
+            const isGood =
+                gageHeight !== null && gageHeight < 3.5 &&
+                turbidity !== null && turbidity <= 8 &&
+                streamflow !== null && streamflow <= 1000 &&
+                temperature !== null && temperature >= 45 && temperature <= 65 &&
+                !damGenerationActive;
+
+            // Evaluate conditions for "caution"
+            const isCaution =
+                gageHeight !== null && gageHeight >= 3.5 && gageHeight <= 4 &&
+                turbidity !== null && turbidity >= 8 && turbidity <= 9 &&
+                streamflow !== null && streamflow >= 1000 && streamflow <= 3000 &&
+                temperature !== null && ((temperature >= 40 && temperature <= 45) || (temperature >= 65 && temperature <= 67)) &&
+                !damGenerationActive;
+
+            // Evaluate conditions for "poor"
+            const isPoor =
+                (gageHeight !== null && gageHeight > 4) ||
+                (turbidity !== null && turbidity >= 9) ||
+                (streamflow !== null && streamflow >= 3000) ||
+                (temperature !== null && (temperature < 40 || temperature > 67)) ||
+                damGenerationActive;
+
+            if (isGood) return 'good';
+            if (isCaution) return 'caution';
+            if (isPoor) return 'poor';
+
+            return ''; // No condition met, return empty string
         }
         
         function createSummaryCard(categoryName, measurements) {
@@ -870,10 +890,10 @@ function displayUSACEData(data) {
                     latestValue.textContent = displayValue.toFixed(2);
                 }
 
-                // Apply fishing condition color coding
-                const conditionColor = getFishingConditionColor(categoryName, measurements[0].value, preferFahrenheit);
-                if (conditionColor) {
-                    latestValue.style.color = conditionColor;
+                // Add condition class to latest-value
+                const conditionClass = getConditionClass(AppState.getCurrentData(), AppState.getUsaceData());
+                if (conditionClass) {
+                    latestValue.classList.add(conditionClass);
                 }
 
             } else {
@@ -1090,15 +1110,13 @@ function displayUSACEData(data) {
             const currentValue = document.createElement('div');
             currentValue.className = 'dam-current-value';
             currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
-            
-            // Apply fishing condition color coding to dam generation
-            if (currentPeriod) {
-                const conditionColor = getDamFishingConditionColor(currentPeriod.generation);
-                if (conditionColor) {
-                    currentValue.style.color = conditionColor;
-                }
+
+            // Add condition class to dam-current-value
+            const conditionClass = getConditionClass(AppState.getCurrentData(), data);
+            if (conditionClass) {
+                currentValue.classList.add(conditionClass);
             }
-            
+
             damInfo.appendChild(currentValue);
 
             const statusInfo = document.createElement('div');
