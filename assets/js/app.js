@@ -1048,6 +1048,32 @@ function displayUSACEData(data) {
             const currentValue = document.createElement('div');
             currentValue.className = 'dam-current-value';
             currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
+            
+            // Add condition-based CSS class to dam-current-value
+            if (currentPeriod) {
+                const currentGen = currentPeriod.generation;
+                const triggerTime = Storage.getGenerationTriggerTime();
+                let hoursSinceHighGeneration = null;
+                
+                if (triggerTime) {
+                    const triggerTimestamp = parseInt(triggerTime, 10);
+                    const now = new Date();
+                    hoursSinceHighGeneration = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
+                }
+                
+                // Logic based on recent high generation activity
+                if (currentGen < 5 && (!triggerTime || hoursSinceHighGeneration > 8)) {
+                    // Generation currently < 5 MW and no recent high generation (or high generation was >8 hours ago)
+                    currentValue.classList.add('good');
+                } else if (currentGen < 5 && (!triggerTime || hoursSinceHighGeneration > 4)) {
+                    // Generation currently < 5 MW and high generation was >4 hours ago (but <8 hours ago)
+                    currentValue.classList.add('caution');
+                } else if (currentGen >= 5 || (triggerTime && hoursSinceHighGeneration <= 6)) {
+                    // Generation currently >= 5 MW OR high generation within last 6 hours
+                    currentValue.classList.add('poor');
+                }
+            }
+            
             damInfo.appendChild(currentValue);
 
             const statusInfo = document.createElement('div');
