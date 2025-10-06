@@ -411,6 +411,7 @@ async function loadWaterData() {
             const categories = parseTimeSeriesData(data);
             AppState.setCurrentData(categories);
             displayTable(categories);
+            checkFishingConditions(categories, AppState.getUsaceData());
 
             UI.updateLastUpdated('Last updated: just now');
 
@@ -474,6 +475,7 @@ async function loadUSACEData() {
 
         AppState.setUsaceData(data);
         displayUSACEData(data);
+        checkFishingConditions(AppState.getCurrentData(), data);
 
         if (Object.keys(AppState.getCurrentData()).length > 0) {
             displayTable(AppState.getCurrentData());
@@ -1344,7 +1346,7 @@ function displayUSACEData(data) {
                     if (indicator && indicator.parentNode) {
                         indicator.remove();
                     }
-                }, 5000);
+                }, 8000);
             } else {
                 body.style.background = '';
                 if (existingIndicator) {
@@ -1492,7 +1494,6 @@ function displayUSACEData(data) {
                 displayUSACEData(usaceData);
             }
 
-            checkFishingConditions(categories, usaceData);
             updateTableScrollHints();
         }
 
