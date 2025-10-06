@@ -824,29 +824,28 @@ function displayUSACEData(data) {
                 }
             }
 
-            // Evaluate conditions for "good"
-            const isGood =
-                gageHeight !== null && gageHeight < 3.5 &&
-                turbidity !== null && turbidity <= 8 &&
-                streamflow !== null && streamflow <= 1000 &&
-                temperature !== null && temperature >= 45 && temperature <= 65 &&
-                !damGenerationActive;
+            // Evaluate conditions for "good" - all available parameters must meet good criteria
+            let isGood = true;
+            if (gageHeight !== null && gageHeight >= 3.5) isGood = false;
+            if (turbidity !== null && turbidity > 8) isGood = false;
+            if (streamflow !== null && streamflow > 1000) isGood = false;
+            if (temperature !== null && (temperature < 45 || temperature > 65)) isGood = false;
+            if (damGenerationActive) isGood = false;
 
-            // Evaluate conditions for "caution"
-            const isCaution =
-                gageHeight !== null && gageHeight >= 3.5 && gageHeight <= 4 &&
-                turbidity !== null && turbidity >= 8 && turbidity <= 9 &&
-                streamflow !== null && streamflow >= 1000 && streamflow <= 3000 &&
-                temperature !== null && ((temperature >= 40 && temperature <= 45) || (temperature >= 65 && temperature <= 67)) &&
-                !damGenerationActive;
+            // Evaluate conditions for "caution" - all available parameters must meet caution criteria
+            let isCaution = true;
+            if (gageHeight !== null && (gageHeight < 3.5 || gageHeight > 4)) isCaution = false;
+            if (turbidity !== null && (turbidity < 8 || turbidity > 9)) isCaution = false;
+            if (streamflow !== null && (streamflow < 1000 || streamflow > 3000)) isCaution = false;
+            if (temperature !== null && !((temperature >= 40 && temperature <= 45) || (temperature >= 65 && temperature <= 67))) isCaution = false;
+            if (damGenerationActive) isCaution = false;
 
-            // Evaluate conditions for "poor"
-            const isPoor =
-                (gageHeight !== null && gageHeight > 4) ||
-                (turbidity !== null && turbidity >= 9) ||
-                (streamflow !== null && streamflow >= 3000) ||
-                (temperature !== null && (temperature < 40 || temperature > 67)) ||
-                damGenerationActive;
+            // Evaluate conditions for "poor" - any available parameter meeting poor criteria
+            const isPoor = (gageHeight !== null && gageHeight > 4) ||
+                          (turbidity !== null && turbidity >= 9) ||
+                          (streamflow !== null && streamflow >= 3000) ||
+                          (temperature !== null && (temperature < 40 || temperature > 67)) ||
+                          damGenerationActive;
 
             if (isGood) return 'good';
             if (isCaution) return 'caution';
