@@ -762,6 +762,92 @@ function displayUSACEData(data) {
             }
         }
         
+        function evaluateCategoryConditionClass(categoryName, categories, usaceData) {
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+            const preferFahrenheit = AppState.getUseFahrenheit();
+
+            // Get measurements for this specific category
+            const measurements = categories[categoryName];
+            if (!measurements || measurements.length === 0) {
+                return null; // No class if no data
+            }
+
+            const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
+            if (recentMeasurements.length === 0) {
+                return null; // No class if no recent data
+            }
+
+            const latestValue = recentMeasurements[0].value;
+            let convertedValue = latestValue;
+
+            // Convert temperature if needed
+            if (categoryName.toLowerCase().includes('temperature')) {
+                convertedValue = preferFahrenheit ? Utils.celsiusToFahrenheit(latestValue) : latestValue;
+            }
+
+            // Check dam generation status (used for all categories)
+            let damGenerationActive = false;
+            let damGenerationRecent = false;
+            if (usaceData?.schedules) {
+                const today = new Date();
+                const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+                const schedule = usaceData.schedules[todayStr];
+
+                if (Array.isArray(schedule?.periods)) {
+                    const currentHour = today.getHours();
+                    schedule.periods.slice(0, 24).forEach((period) => {
+                        const timeMatch = period?.time?.match(/(\d+):00 (am|pm)/);
+                        if (!timeMatch) return;
+                        let hour = parseInt(timeMatch[1], 10);
+                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                        if (hour === currentHour && period.generation >= 5) {
+                            damGenerationActive = true;
+                        }
+                    });
+                }
+            }
+
+            // Check recent dam generation activity
+            const triggerTime = Storage.getGenerationTriggerTime();
+            if (triggerTime) {
+                const triggerTimestamp = parseInt(triggerTime, 10);
+                const hoursElapsed = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
+                if (hoursElapsed <= 8) {
+                    damGenerationRecent = true;
+                }
+            }
+
+            // Evaluate conditions based on category
+            if (categoryName.toLowerCase().includes('gage height')) {
+                if (convertedValue < 3.5) return 'good';
+                if (convertedValue <= 4) return 'caution';
+                return 'poor';
+            }
+
+            if (categoryName.toLowerCase().includes('turbidity')) {
+                if (convertedValue <= 8) return 'good';
+                if (convertedValue <= 9) return 'caution';
+                return 'poor';
+            }
+
+            if (categoryName.toLowerCase().includes('streamflow')) {
+                if (convertedValue <= 1000) return 'good';
+                if (convertedValue <= 3000) return 'caution';
+                return 'poor';
+            }
+
+            if (categoryName.toLowerCase().includes('temperature')) {
+                if (convertedValue >= 45 && convertedValue <= 65) return 'good';
+                if ((convertedValue >= 40 && convertedValue < 45) || (convertedValue > 65 && convertedValue <= 67)) return 'caution';
+                return 'poor';
+            }
+
+            // For categories not in our condition evaluation, return null
+            return null;
+        }
+
         function evaluateFishingConditionClass(categories, usaceData) {
             // Get current conditions from categories
             let gageHeight = null;
@@ -891,9 +977,11 @@ function displayUSACEData(data) {
                 latestValue.innerHTML = '<span style="color: #dc3545;">N/A</span>';
             }
 
-            // Add condition class based on fishing conditions
-            const conditionClass = evaluateFishingConditionClass(categories, usaceData);
-            latestValue.classList.add(conditionClass);
+            // Add condition class based on this category's conditions only
+            const conditionClass = evaluateCategoryConditionClass(categoryName, categories, usaceData);
+            if (conditionClass) {
+                latestValue.classList.add(conditionClass);
+            }
 
             summaryInfo.appendChild(latestValue);
 
@@ -1107,7 +1195,7 @@ function displayUSACEData(data) {
             currentValue.className = 'dam-current-value';
             currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
 
-            // Add condition class based on fishing conditions
+            // Add condition class based on overall fishing conditions
             const conditionClass = evaluateFishingConditionClass(categories, data);
             currentValue.classList.add(conditionClass);
 
