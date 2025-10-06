@@ -24,8 +24,9 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 
 ### 📊 Enhanced Data Visualization
 - **Summary Cards**: Quick overview of key parameters with trend indicators
-- **Trend Analysis**: 3-hour trend arrows showing parameter direction
+- **Trend Analysis**: 3-hour trend arrows showing parameter direction (applied to trend indicators only)
 - **Rate of Change**: Average change per hour over the last 3 hours with stability, rising, and falling cues
+- **Condition-Based Styling**: Latest values are color-coded based on fishing condition thresholds (gage height, turbidity, streamflow, temperature only)
 - **Interactive Filters**: Toggle visibility of different data categories
 - **Temperature Units**: Switch between Celsius and Fahrenheit
 
@@ -38,12 +39,40 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 
 ## Fishing Condition Logic
 
-### Green Background (Excellent Fishing)
+### Summary Card Latest-Value Styling (Per-Category)
+
+Latest values are color-coded based on individual parameter thresholds:
+
+#### Gage Height
+- 🟢 **Good** (< 3.5 ft)
+- 🟠 **Caution** (3.5 - 4 ft)
+- 🔴 **Poor** (> 4 ft)
+
+#### Turbidity
+- 🟢 **Good** (≤ 8 NTU)
+- 🟠 **Caution** (8 - 9 NTU)
+- 🔴 **Poor** (≥ 9 NTU)
+
+#### Streamflow
+- 🟢 **Good** (≤ 1000 ft³/s)
+- 🟠 **Caution** (1000 - 3000 ft³/s)
+- 🔴 **Poor** (≥ 3000 ft³/s)
+
+#### Temperature (°F)
+- 🟢 **Good** (45 - 65°F)
+- 🟠 **Caution** (40-45°F or 65-67°F)
+- 🔴 **Poor** (< 40°F or > 67°F)
+
+### Background Color Logic (Overall Conditions)
+
+#### Green Background (Excellent Fishing)
 - Gage Height ≤ 4 ft for past hour **AND**
 - Turbidity ≤ 8 NTU for past hour **AND**
-- Streamflow ≤ 1000 ft³/s for past hour
+- Streamflow ≤ 1000 ft³/s for past hour **AND**
+- Temperature 45-65°F for past hour **AND**
+- Dam generation < 5 MW or not active within last 8 hours
 
-### Orange Background (Caution)
+#### Orange Background (Caution)
 - Gage Height ≤ 4 ft for past hour **AND**
 - Turbidity between 8 and 9 NTU for past hour
   **OR**
@@ -51,12 +80,17 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 - Streamflow between 1000 ft³/s and 3000 ft³/s for past hour
   **OR**
 - Gage Height ≤ 4 ft for past hour **AND**
-- Dam generation ≥ 5 MW is active or was recorded within the last 6 hours
+- Temperature 40-45°F or 65-67°F for past hour
+  **OR**
+- Gage Height ≤ 4 ft for past hour **AND**
+- Dam generation ≥ 5 MW is active or was recorded within the last 4-6 hours
 
-### Red Background (Poor Fishing)
+#### Red Background (Poor Fishing)
 - Gage Height > 4 ft for past hour **OR**
 - Turbidity ≥ 9 NTU for past hour **OR**
-- Streamflow ≥ 3000 ft³/s for past hour
+- Streamflow ≥ 3000 ft³/s for past hour **OR**
+- Temperature < 40°F or > 67°F for past hour **OR**
+- Dam generation ≥ 5 MW is active or was recorded within the last 6 hours
 
 ## Usage
 
@@ -112,14 +146,11 @@ The dashboard shows comprehensive water quality and operational parameters:
 │       └── safari-pinned-tab.svg
 ├── site.webmanifest
 └── docs/
+    ├── app-logic.md
     └── INDEX_REVIEW.md
-```
-
-- `index.html` contains the full dashboard markup and links to all external assets.
-- `assets/css/styles.css` holds all layout, typography, and responsive rules.
-- `assets/js/app.js` manages data fetching, state handling, and UI interactions.
 - `assets/icons/` stores favicon and installability icons referenced by `index.html` and `site.webmanifest`.
 - `site.webmanifest` exposes install metadata for browsers and devices.
+- `docs/app-logic.md` contains detailed documentation of fishing condition logic and thresholds.
 - `docs/INDEX_REVIEW.md` captures the latest manual review notes and priorities.
 
 ## Technical Details
