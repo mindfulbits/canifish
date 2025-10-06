@@ -762,98 +762,6 @@ function displayUSACEData(data) {
             }
         }
         
-        function getConditionClass(categories, usaceData) {
-            // Get current values from the past hour for each parameter
-            let gageHeight = null;
-            let turbidity = null;
-            let streamflow = null;
-            let temperature = null;
-            let damGenerationActive = false;
-
-            const now = new Date();
-            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-
-            // Check each category for recent measurements
-            Object.entries(categories).forEach(([categoryName, measurements]) => {
-                if (!measurements || measurements.length === 0) return;
-
-                const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
-                if (recentMeasurements.length === 0) return;
-
-                const latestValue = recentMeasurements[0].value;
-
-                if (categoryName.toLowerCase().includes('gage height')) {
-                    gageHeight = latestValue;
-                } else if (categoryName.toLowerCase().includes('turbidity')) {
-                    turbidity = latestValue;
-                } else if (categoryName.toLowerCase().includes('streamflow')) {
-                    streamflow = latestValue;
-                } else if (categoryName.toLowerCase().includes('temperature')) {
-                    temperature = latestValue;
-                }
-            });
-
-            // Check dam generation activity
-            if (usaceData?.schedules) {
-                const today = new Date();
-                const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
-
-                const triggerTime = Storage.getGenerationTriggerTime();
-                if (triggerTime) {
-                    const triggerTimestamp = parseInt(triggerTime, 10);
-                    const hoursElapsed = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
-                    if (hoursElapsed <= 8) { // Active within last 8 hours
-                        damGenerationActive = true;
-                    }
-                }
-
-                // Also check current generation level
-                const schedule = usaceData.schedules[todayStr];
-                if (Array.isArray(schedule?.periods)) {
-                    const currentHour = today.getHours();
-                    schedule.periods.forEach((period) => {
-                        const timeMatch = period?.time?.match(/(\d+):00 (am|pm)/);
-                        if (!timeMatch) return;
-                        let hour = parseInt(timeMatch[1], 10);
-                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
-                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
-                        if (hour === currentHour && period.generation >= 5) {
-                            damGenerationActive = true;
-                        }
-                    });
-                }
-            }
-
-            // Evaluate conditions for "good" - all available parameters must meet good criteria
-            let isGood = true;
-            if (gageHeight !== null && gageHeight >= 3.5) isGood = false;
-            if (turbidity !== null && turbidity > 8) isGood = false;
-            if (streamflow !== null && streamflow > 1000) isGood = false;
-            if (temperature !== null && (temperature < 45 || temperature > 65)) isGood = false;
-            if (damGenerationActive) isGood = false;
-
-            // Evaluate conditions for "caution" - all available parameters must meet caution criteria
-            let isCaution = true;
-            if (gageHeight !== null && (gageHeight < 3.5 || gageHeight > 4)) isCaution = false;
-            if (turbidity !== null && (turbidity < 8 || turbidity > 9)) isCaution = false;
-            if (streamflow !== null && (streamflow < 1000 || streamflow > 3000)) isCaution = false;
-            if (temperature !== null && !((temperature >= 40 && temperature <= 45) || (temperature >= 65 && temperature <= 67))) isCaution = false;
-            if (damGenerationActive) isCaution = false;
-
-            // Evaluate conditions for "poor" - any available parameter meeting poor criteria
-            const isPoor = (gageHeight !== null && gageHeight > 4) ||
-                          (turbidity !== null && turbidity >= 9) ||
-                          (streamflow !== null && streamflow >= 3000) ||
-                          (temperature !== null && (temperature < 40 || temperature > 67)) ||
-                          damGenerationActive;
-
-            if (isGood) return 'good';
-            if (isCaution) return 'caution';
-            if (isPoor) return 'poor';
-
-            return ''; // No condition met, return empty string
-        }
-        
         function createSummaryCard(categoryName, measurements) {
             const card = document.createElement('div');
             card.className = 'summary-card';
@@ -887,12 +795,6 @@ function displayUSACEData(data) {
                     latestValue.textContent = `${displayValue.toFixed(1)}${preferFahrenheit ? '°F' : '°C'}`;
                 } else {
                     latestValue.textContent = displayValue.toFixed(2);
-                }
-
-                // Add condition class to latest-value
-                const conditionClass = getConditionClass(AppState.getCurrentData(), AppState.getUsaceData());
-                if (conditionClass) {
-                    latestValue.classList.add(conditionClass);
                 }
 
             } else {
@@ -1109,13 +1011,6 @@ function displayUSACEData(data) {
             const currentValue = document.createElement('div');
             currentValue.className = 'dam-current-value';
             currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
-
-            // Add condition class to dam-current-value
-            const conditionClass = getConditionClass(AppState.getCurrentData(), data);
-            if (conditionClass) {
-                currentValue.classList.add(conditionClass);
-            }
-
             damInfo.appendChild(currentValue);
 
             const statusInfo = document.createElement('div');
