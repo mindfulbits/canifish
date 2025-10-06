@@ -1338,6 +1338,13 @@ function displayUSACEData(data) {
                 }
 
                 document.body.appendChild(indicator);
+
+                // Hide the indicator after 5 seconds
+                setTimeout(() => {
+                    if (indicator && indicator.parentNode) {
+                        indicator.remove();
+                    }
+                }, 5000);
             } else {
                 body.style.background = '';
                 if (existingIndicator) {
