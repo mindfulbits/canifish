@@ -1234,6 +1234,7 @@ function displayUSACEData(data) {
         }
         
         function checkFishingConditions(categories, usaceData) {
+            console.log('🔍 checkFishingConditions called with:', { categories: Object.keys(categories), usaceData: !!usaceData });
             let turbidityGood = false;
             let turbidityModerate = false;
             let turbidityBad = false;
@@ -1343,6 +1344,14 @@ function displayUSACEData(data) {
             const isGreen = turbidityGood && gageHeightGood && streamflowGood;
             const isOrange = gageHeightGood && (turbidityModerate || streamflowModerate || shouldShowOrangeBackground);
             const isRed = gageHeightBad || turbidityBad || streamflowHigh;
+
+            console.log('📊 Fishing condition evaluation:', {
+                turbidity: { good: turbidityGood, moderate: turbidityModerate, bad: turbidityBad },
+                gageHeight: { good: gageHeightGood, bad: gageHeightBad },
+                streamflow: { good: streamflowGood, moderate: streamflowModerate, high: streamflowHigh },
+                dam: { shouldShowOrange: shouldShowOrangeBackground },
+                result: { isGreen, isOrange, isRed }
+            });
 
             if (isOrange) {
                 backgroundColor = 'rgba(255, 152, 0, 0.5)';
