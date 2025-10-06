@@ -762,6 +762,149 @@ function displayUSACEData(data) {
             }
         }
         
+        function getConditionClass(categoryName, displayValue, categories, usaceData) {
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+            // Helper function to check if dam generation was active recently
+            const checkDamGenerationRecent = (hoursThreshold) => {
+                if (!usaceData?.schedules) return false;
+                
+                const triggerTime = Storage.getGenerationTriggerTime();
+                if (triggerTime) {
+                    const triggerTimestamp = parseInt(triggerTime, 10);
+                    const hoursElapsed = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
+                    return hoursElapsed <= hoursThreshold;
+                }
+                
+                // Check if currently generating above 5 MW
+                const today = new Date();
+                const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+                const schedule = usaceData.schedules[todayStr];
+                
+                if (Array.isArray(schedule?.periods)) {
+                    const currentHour = today.getHours();
+                    return schedule.periods.some((period) => {
+                        const timeMatch = period?.time?.match(/(\d+):00 (am|pm)/);
+                        if (!timeMatch) return false;
+                        let hour = parseInt(timeMatch[1], 10);
+                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                        return hour === currentHour && period.generation >= 5;
+                    });
+                }
+                return false;
+            };
+
+            // Check conditions based on category type
+            if (categoryName.toLowerCase().includes('gage height')) {
+                // Gage Height conditions
+                if (displayValue < 3.5) return 'condition-good';
+                if (displayValue >= 3.5 && displayValue <= 4) return 'condition-caution';
+                if (displayValue > 4) return 'condition-poor';
+            }
+            
+            if (categoryName.toLowerCase().includes('turbidity')) {
+                // Turbidity conditions
+                if (displayValue <= 8) return 'condition-good';
+                if (displayValue > 8 && displayValue < 9) return 'condition-caution';
+                if (displayValue >= 9) return 'condition-poor';
+            }
+            
+            if (categoryName.toLowerCase().includes('streamflow')) {
+                // Streamflow conditions
+                if (displayValue <= 1000) return 'condition-good';
+                if (displayValue > 1000 && displayValue < 3000) return 'condition-caution';
+                if (displayValue >= 3000) return 'condition-poor';
+            }
+            
+            if (categoryName.toLowerCase().includes('temperature')) {
+                // For temperature, we need to check other conditions
+                // Get recent measurements for other sensors
+                let gageHeightOk = false;
+                let turbidityOk = false;
+                let streamflowOk = false;
+                let damRecent = checkDamGenerationRecent(8); // 8 hours for good
+                
+                // Check gage height
+                const gageHeightMeasurements = Object.entries(categories).find(([name, measurements]) => 
+                    name.toLowerCase().includes('gage height') && measurements.length > 0
+                );
+                if (gageHeightMeasurements) {
+                    const recentGage = gageHeightMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    gageHeightOk = recentGage.length > 0 && recentGage.every(m => m.value < 3.5);
+                }
+                
+                // Check turbidity
+                const turbidityMeasurements = Object.entries(categories).find(([name, measurements]) => 
+                    name.toLowerCase().includes('turbidity') && measurements.length > 0
+                );
+                if (turbidityMeasurements) {
+                    const recentTurbidity = turbidityMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    turbidityOk = recentTurbidity.length > 0 && recentTurbidity.every(m => m.value <= 8);
+                }
+                
+                // Check streamflow
+                const streamflowMeasurements = Object.entries(categories).find(([name, measurements]) => 
+                    name.toLowerCase().includes('streamflow') && measurements.length > 0
+                );
+                if (streamflowMeasurements) {
+                    const recentStreamflow = streamflowMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    streamflowOk = recentStreamflow.length > 0 && recentStreamflow.every(m => m.value <= 1000);
+                }
+                
+                if (gageHeightOk && turbidityOk && streamflowOk && !damRecent) return 'condition-good';
+                
+                // Check caution conditions
+                damRecent = checkDamGenerationRecent(4); // 4 hours for caution
+                let gageHeightCaution = false;
+                let turbidityCaution = false;
+                let streamflowCaution = false;
+                
+                if (gageHeightMeasurements) {
+                    const recentGage = gageHeightMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    gageHeightCaution = recentGage.length > 0 && recentGage.every(m => m.value >= 3.5 && m.value <= 4);
+                }
+                
+                if (turbidityMeasurements) {
+                    const recentTurbidity = turbidityMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    turbidityCaution = recentTurbidity.length > 0 && recentTurbidity.every(m => m.value > 8 && m.value < 9);
+                }
+                
+                if (streamflowMeasurements) {
+                    const recentStreamflow = streamflowMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    streamflowCaution = recentStreamflow.length > 0 && recentStreamflow.every(m => m.value > 1000 && m.value < 3000);
+                }
+                
+                if ((gageHeightCaution || turbidityCaution || streamflowCaution) && !damRecent) return 'condition-caution';
+                
+                // Check poor conditions
+                damRecent = checkDamGenerationRecent(6); // 6 hours for poor
+                let gageHeightPoor = false;
+                let turbidityPoor = false;
+                let streamflowPoor = false;
+                
+                if (gageHeightMeasurements) {
+                    const recentGage = gageHeightMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    gageHeightPoor = recentGage.length > 0 && recentGage.some(m => m.value > 4);
+                }
+                
+                if (turbidityMeasurements) {
+                    const recentTurbidity = turbidityMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    turbidityPoor = recentTurbidity.length > 0 && recentTurbidity.some(m => m.value >= 9);
+                }
+                
+                if (streamflowMeasurements) {
+                    const recentStreamflow = streamflowMeasurements[1].filter(m => new Date(m.datetime) >= oneHourAgo);
+                    streamflowPoor = recentStreamflow.length > 0 && recentStreamflow.some(m => m.value >= 3000);
+                }
+                
+                if (gageHeightPoor || turbidityPoor || streamflowPoor || damRecent) return 'condition-poor';
+            }
+            
+            return null; // No condition met
+        }
+        
         function createSummaryCard(categoryName, measurements) {
             const card = document.createElement('div');
             card.className = 'summary-card';
@@ -797,36 +940,8 @@ function displayUSACEData(data) {
                     latestValue.textContent = displayValue.toFixed(2);
                 }
 
-                // Apply condition-based styling to latest values
-                let conditionClass = '';
-                const lowerCategoryName = categoryName.toLowerCase();
-
-                if (lowerCategoryName.includes('gage height')) {
-                    if (displayValue < 3.5) {
-                        conditionClass = 'condition-good';
-                    } else if (displayValue >= 3.5 && displayValue <= 4) {
-                        conditionClass = 'condition-caution';
-                    } else if (displayValue > 4) {
-                        conditionClass = 'condition-poor';
-                    }
-                } else if (lowerCategoryName.includes('turbidity')) {
-                    if (displayValue <= 8) {
-                        conditionClass = 'condition-good';
-                    } else if (displayValue > 8 && displayValue < 9) {
-                        conditionClass = 'condition-caution';
-                    } else if (displayValue >= 9) {
-                        conditionClass = 'condition-poor';
-                    }
-                } else if (lowerCategoryName.includes('streamflow')) {
-                    if (displayValue <= 1000) {
-                        conditionClass = 'condition-good';
-                    } else if (displayValue > 1000 && displayValue < 3000) {
-                        conditionClass = 'condition-caution';
-                    } else if (displayValue >= 3000) {
-                        conditionClass = 'condition-poor';
-                    }
-                }
-
+                // Apply condition-based styling
+                const conditionClass = getConditionClass(categoryName, displayValue, AppState.getCurrentData(), AppState.getUsaceData());
                 if (conditionClass) {
                     latestValue.classList.add(conditionClass);
                 }
@@ -1045,14 +1160,6 @@ function displayUSACEData(data) {
             const currentValue = document.createElement('div');
             currentValue.className = 'dam-current-value';
             currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
-
-            // Apply condition-based styling to dam generation
-            if (currentPeriod && currentPeriod.generation >= 5) {
-                currentValue.classList.add('condition-poor');
-            } else if (currentPeriod) {
-                currentValue.classList.add('condition-good');
-            }
-
             damInfo.appendChild(currentValue);
 
             const statusInfo = document.createElement('div');
