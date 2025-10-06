@@ -1180,8 +1180,6 @@ grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 
     .data-table,
     .generation-table {
-        display: block;
-        overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
 
