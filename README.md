@@ -39,27 +39,24 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 ## Fishing Condition Logic
 
 ### Green Background (Excellent Fishing)
-- Turbidity < 10 NTU for past hour **AND**
-- Gage Height < 4 ft for past hour **AND**
-- Streamflow < 1000 ft³/s for past hour **AND**
-- No dam generation ≥ 5 MW recorded in the last 14 hours
+- Gage Height ≤ 4 ft for past hour **AND**
+- Turbidity ≤ 8 NTU for past hour **AND**
+- Streamflow ≤ 1000 ft³/s for past hour
 
 ### Orange Background (Caution)
-- Turbidity < 10 NTU for past hour **AND**
-- Gage Height < 4 ft for past hour **AND**
-- Streamflow < 1000 ft³/s for past hour **AND**
-- Dam generation ≥ 5 MW occurred within the last ~4.5 hours
-  
+- Gage Height ≤ 4 ft for past hour **AND**
+- Turbidity between 8 and 9 NTU for past hour
   **OR**
-
-- Turbidity < 10 NTU for past hour **AND**
-- Gage Height < 4 ft for past hour **AND**
-- Streamflow between 1000 and 2999 ft³/s for past hour
+- Gage Height ≤ 4 ft for past hour **AND**
+- Streamflow between 1000 ft³/s and 3000 ft³/s for past hour
+  **OR**
+- Gage Height ≤ 4 ft for past hour **AND**
+- Dam generation ≥ 5 MW is active or was recorded within the last 6 hours
 
 ### Red Background (Poor Fishing)
-- Gage Height ≥ 4 ft for past hour **OR**
-- Streamflow ≥ 3000 ft³/s for past hour **OR**
-- Dam generation ≥ 5 MW is active or was recorded within the last 14 hours
+- Gage Height > 4 ft for past hour **OR**
+- Turbidity ≥ 9 NTU for past hour **OR**
+- Streamflow ≥ 3000 ft³/s for past hour
 
 ## Usage
 
