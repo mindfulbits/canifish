@@ -1341,7 +1341,7 @@ function displayUSACEData(data) {
 
                 document.body.appendChild(indicator);
 
-                // Hide the indicator after 5 seconds
+                // Hide the indicator after 8 seconds
                 setTimeout(() => {
                     if (indicator && indicator.parentNode) {
                         indicator.remove();
