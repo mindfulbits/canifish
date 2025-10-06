@@ -797,21 +797,6 @@ function displayUSACEData(data) {
                     latestValue.textContent = displayValue.toFixed(2);
                 }
 
-                if (measurements.length >= 2) {
-                    const currentValue = measurements[0].value;
-                    const previousValue = measurements[1].value;
-                    const difference = currentValue - previousValue;
-                    const changeDirection = difference > 0 ? '+' : '';
-                    latestValue.title = `${changeDirection}${difference.toFixed(2)} since previous reading`;
-                    latestValue.style.cursor = 'help';
-
-                    if (Math.abs(difference) > 0.01) {
-                        latestValue.classList.add(difference > 0 ? 'trend-up' : 'trend-down');
-                    }
-                } else {
-                    latestValue.title = 'No previous reading available for comparison';
-                    latestValue.style.cursor = 'help';
-                }
             } else {
                 latestValue.innerHTML = '<span style="color: #dc3545;">N/A</span>';
             }
