@@ -762,7 +762,97 @@ function displayUSACEData(data) {
             }
         }
         
-        function createSummaryCard(categoryName, measurements) {
+        function evaluateFishingConditionClass(categories, usaceData) {
+            // Get current conditions from categories
+            let gageHeight = null;
+            let turbidity = null;
+            let streamflow = null;
+            let temperature = null;
+
+            const now = new Date();
+            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+            const preferFahrenheit = AppState.getUseFahrenheit();
+
+            // Extract recent measurements
+            Object.entries(categories).forEach(([categoryName, measurements]) => {
+                if (measurements.length > 0) {
+                    const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
+                    if (recentMeasurements.length > 0) {
+                        const latestValue = recentMeasurements[0].value;
+
+                        if (categoryName.toLowerCase().includes('gage height')) {
+                            gageHeight = latestValue;
+                        } else if (categoryName.toLowerCase().includes('turbidity')) {
+                            turbidity = latestValue;
+                        } else if (categoryName.toLowerCase().includes('streamflow')) {
+                            streamflow = latestValue;
+                        } else if (categoryName.toLowerCase().includes('temperature')) {
+                            temperature = preferFahrenheit ? Utils.celsiusToFahrenheit(latestValue) : latestValue;
+                        }
+                    }
+                }
+            });
+
+            // Check dam generation status
+            let damGenerationActive = false;
+            let damGenerationRecent = false;
+            if (usaceData?.schedules) {
+                const today = new Date();
+                const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+                const schedule = usaceData.schedules[todayStr];
+
+                if (Array.isArray(schedule?.periods)) {
+                    const currentHour = today.getHours();
+                    schedule.periods.slice(0, 24).forEach((period) => {
+                        const timeMatch = period?.time?.match(/(\d+):00 (am|pm)/);
+                        if (!timeMatch) return;
+                        let hour = parseInt(timeMatch[1], 10);
+                        if (timeMatch[2] === 'pm' && hour !== 12) hour += 12;
+                        if (timeMatch[2] === 'am' && hour === 12) hour = 0;
+                        if (hour === currentHour && period.generation >= 5) {
+                            damGenerationActive = true;
+                        }
+                    });
+                }
+            }
+
+            // Check recent dam generation activity
+            const triggerTime = Storage.getGenerationTriggerTime();
+            if (triggerTime) {
+                const triggerTimestamp = parseInt(triggerTime, 10);
+                const hoursElapsed = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
+                if (hoursElapsed <= 8) {
+                    damGenerationRecent = true;
+                }
+            }
+
+            // Evaluate conditions
+            const hasPoorCondition =
+                (gageHeight !== null && gageHeight > 4) ||
+                (turbidity !== null && turbidity >= 9) ||
+                (streamflow !== null && streamflow >= 3000) ||
+                (temperature !== null && (temperature < 40 || temperature > 67)) ||
+                damGenerationActive ||
+                (damGenerationRecent && hoursElapsed <= 6);
+
+            const hasAllGoodConditions =
+                (gageHeight === null || gageHeight < 3.5) &&
+                (turbidity === null || turbidity <= 8) &&
+                (streamflow === null || streamflow <= 1000) &&
+                (temperature === null || (temperature >= 45 && temperature <= 65)) &&
+                !damGenerationActive &&
+                (!damGenerationRecent || hoursElapsed > 8);
+
+            if (hasPoorCondition) {
+                return 'poor';
+            } else if (hasAllGoodConditions) {
+                return 'good';
+            } else {
+                return 'caution';
+            }
+        }
+        
+        function createSummaryCard(categoryName, measurements, categories, usaceData) {
             const card = document.createElement('div');
             card.className = 'summary-card';
 
@@ -800,6 +890,11 @@ function displayUSACEData(data) {
             } else {
                 latestValue.innerHTML = '<span style="color: #dc3545;">N/A</span>';
             }
+
+            // Add condition class based on fishing conditions
+            const conditionClass = evaluateFishingConditionClass(categories, usaceData);
+            latestValue.classList.add(conditionClass);
+
             summaryInfo.appendChild(latestValue);
 
             const timeSince = document.createElement('div');
@@ -975,7 +1070,7 @@ function displayUSACEData(data) {
             return card;
         }
         
-        function createDamSummaryCard(data) {
+        function createDamSummaryCard(data, categories) {
             const card = document.createElement('div');
             card.className = 'dam-summary-card';
 
@@ -1011,6 +1106,11 @@ function displayUSACEData(data) {
             const currentValue = document.createElement('div');
             currentValue.className = 'dam-current-value';
             currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
+
+            // Add condition class based on fishing conditions
+            const conditionClass = evaluateFishingConditionClass(categories, data);
+            currentValue.classList.add(conditionClass);
+
             damInfo.appendChild(currentValue);
 
             const statusInfo = document.createElement('div');
@@ -1382,12 +1482,12 @@ function displayUSACEData(data) {
 
             UI.lazyUpdateContainer(summaryContainer, (fragment) => {
                 if (usaceData && visibleCategories[DAM_CATEGORY_KEY]) {
-                    fragment.appendChild(createDamSummaryCard(usaceData));
+                    fragment.appendChild(createDamSummaryCard(usaceData, categories));
                 }
 
                 Object.entries(categories).forEach(([categoryName, measurements]) => {
                     if (!visibleCategories[categoryName]) return;
-                    fragment.appendChild(createSummaryCard(categoryName, measurements));
+                    fragment.appendChild(createSummaryCard(categoryName, measurements, categories, usaceData));
                 });
             });
 
