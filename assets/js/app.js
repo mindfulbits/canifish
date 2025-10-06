@@ -1175,6 +1175,7 @@ function displayUSACEData(data) {
         }
         
         function checkFishingConditions(categories, usaceData) {
+            console.log('checkFishingConditions called with categories:', Object.keys(categories), 'usaceData:', !!usaceData);
             let turbidityGood = false;
             let turbidityModerate = false;
             let turbidityBad = false;
