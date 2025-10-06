@@ -797,32 +797,39 @@ function displayUSACEData(data) {
                     latestValue.textContent = displayValue.toFixed(2);
                 }
 
-                // Add condition-based CSS classes to latest-value
-                const rawValue = measurements[0].value;
-                const currentValue = isTemperature ? (preferFahrenheit ? Utils.celsiusToFahrenheit(rawValue) : rawValue) : rawValue;
+                // Add condition-based CSS class to latest-value
+                const fahrenheitValue = isTemperature ? (preferFahrenheit ? displayValue : Utils.celsiusToFahrenheit(displayValue)) : null;
 
-                if (categoryName.toLowerCase().includes('turbidity')) {
-                    if (currentValue <= 8) {
+                if (categoryName.toLowerCase().includes('gage height')) {
+                    if (displayValue < 3.5) {
                         latestValue.classList.add('good');
-                    } else if (currentValue < 9) {
+                    } else if (displayValue >= 3.5 && displayValue <= 4) {
                         latestValue.classList.add('caution');
-                    } else {
+                    } else if (displayValue > 4) {
+                        latestValue.classList.add('poor');
+                    }
+                } else if (categoryName.toLowerCase().includes('turbidity')) {
+                    if (displayValue <= 8) {
+                        latestValue.classList.add('good');
+                    } else if (displayValue > 8 && displayValue < 9) {
+                        latestValue.classList.add('caution');
+                    } else if (displayValue >= 9) {
                         latestValue.classList.add('poor');
                     }
                 } else if (categoryName.toLowerCase().includes('streamflow')) {
-                    if (currentValue <= 1000) {
+                    if (displayValue <= 1000) {
                         latestValue.classList.add('good');
-                    } else if (currentValue < 3000) {
+                    } else if (displayValue > 1000 && displayValue < 3000) {
                         latestValue.classList.add('caution');
-                    } else {
+                    } else if (displayValue >= 3000) {
                         latestValue.classList.add('poor');
                     }
-                } else if (isTemperature) {
-                    if (currentValue >= 45 && currentValue <= 65) {
+                } else if (isTemperature && fahrenheitValue !== null) {
+                    if (fahrenheitValue >= 45 && fahrenheitValue <= 65) {
                         latestValue.classList.add('good');
-                    } else if ((currentValue >= 40 && currentValue < 45) || (currentValue > 65 && currentValue <= 67)) {
+                    } else if ((fahrenheitValue >= 40 && fahrenheitValue < 45) || (fahrenheitValue > 65 && fahrenheitValue <= 67)) {
                         latestValue.classList.add('caution');
-                    } else {
+                    } else if (fahrenheitValue < 40 || fahrenheitValue > 67) {
                         latestValue.classList.add('poor');
                     }
                 }
@@ -1041,26 +1048,6 @@ function displayUSACEData(data) {
             const currentValue = document.createElement('div');
             currentValue.className = 'dam-current-value';
             currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
-
-            // Add condition-based CSS classes to dam-current-value based on gage height
-            const categories = AppState.getCurrentData();
-            let gageHeightValue = null;
-            Object.entries(categories).forEach(([categoryName, measurements]) => {
-                if (categoryName.toLowerCase().includes('gage height') && measurements.length > 0) {
-                    gageHeightValue = measurements[0].value;
-                }
-            });
-
-            if (gageHeightValue !== null) {
-                if (gageHeightValue < 3.5) {
-                    currentValue.classList.add('good');
-                } else if (gageHeightValue < 4) {
-                    currentValue.classList.add('caution');
-                } else {
-                    currentValue.classList.add('poor');
-                }
-            }
-
             damInfo.appendChild(currentValue);
 
             const statusInfo = document.createElement('div');
