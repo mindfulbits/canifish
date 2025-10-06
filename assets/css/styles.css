@@ -672,6 +672,18 @@ color: #27ae60;
 color: #f39c12;
 }
 
+.condition-good {
+color: rgba(76, 175, 80, 0.9);
+}
+
+.condition-caution {
+color: rgba(255, 152, 0, 0.5);
+}
+
+.condition-poor {
+color: rgba(244, 67, 54, 0.9);
+}
+
 .trend-text {
 font-size: 0.8rem;
 font-weight: bold;

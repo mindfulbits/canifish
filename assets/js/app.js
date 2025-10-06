@@ -797,6 +797,40 @@ function displayUSACEData(data) {
                     latestValue.textContent = displayValue.toFixed(2);
                 }
 
+                // Apply condition-based styling to latest values
+                let conditionClass = '';
+                const lowerCategoryName = categoryName.toLowerCase();
+
+                if (lowerCategoryName.includes('gage height')) {
+                    if (displayValue < 3.5) {
+                        conditionClass = 'condition-good';
+                    } else if (displayValue >= 3.5 && displayValue <= 4) {
+                        conditionClass = 'condition-caution';
+                    } else if (displayValue > 4) {
+                        conditionClass = 'condition-poor';
+                    }
+                } else if (lowerCategoryName.includes('turbidity')) {
+                    if (displayValue <= 8) {
+                        conditionClass = 'condition-good';
+                    } else if (displayValue > 8 && displayValue < 9) {
+                        conditionClass = 'condition-caution';
+                    } else if (displayValue >= 9) {
+                        conditionClass = 'condition-poor';
+                    }
+                } else if (lowerCategoryName.includes('streamflow')) {
+                    if (displayValue <= 1000) {
+                        conditionClass = 'condition-good';
+                    } else if (displayValue > 1000 && displayValue < 3000) {
+                        conditionClass = 'condition-caution';
+                    } else if (displayValue >= 3000) {
+                        conditionClass = 'condition-poor';
+                    }
+                }
+
+                if (conditionClass) {
+                    latestValue.classList.add(conditionClass);
+                }
+
             } else {
                 latestValue.innerHTML = '<span style="color: #dc3545;">N/A</span>';
             }
@@ -1011,6 +1045,14 @@ function displayUSACEData(data) {
             const currentValue = document.createElement('div');
             currentValue.className = 'dam-current-value';
             currentValue.textContent = currentPeriod ? `${currentPeriod.generation} MW` : 'N/A';
+
+            // Apply condition-based styling to dam generation
+            if (currentPeriod && currentPeriod.generation >= 5) {
+                currentValue.classList.add('condition-poor');
+            } else if (currentPeriod) {
+                currentValue.classList.add('condition-good');
+            }
+
             damInfo.appendChild(currentValue);
 
             const statusInfo = document.createElement('div');
