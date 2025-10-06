@@ -1174,7 +1174,10 @@ function displayUSACEData(data) {
         
         function checkFishingConditions(categories, usaceData) {
             let turbidityGood = false;
+            let turbidityModerate = false;
+            let turbidityBad = false;
             let gageHeightGood = false;
+            let gageHeightBad = false;
             let streamflowGood = false;
             let streamflowModerate = false;
             let streamflowHigh = false;
@@ -1187,24 +1190,27 @@ function displayUSACEData(data) {
                 if (categoryName.toLowerCase().includes('turbidity') && measurements.length > 0) {
                     const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
                     if (recentMeasurements.length > 0) {
-                        turbidityGood = recentMeasurements.every((m) => m.value < 10);
+                        turbidityGood = recentMeasurements.every((m) => m.value <= 8);
+                        turbidityModerate = recentMeasurements.every((m) => m.value < 9) && recentMeasurements.some((m) => m.value > 8);
+                        turbidityBad = recentMeasurements.some((m) => m.value >= 9);
                     }
                 }
 
                 if (categoryName.toLowerCase().includes('gage height') && measurements.length > 0) {
                     const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
                     if (recentMeasurements.length > 0) {
-                        gageHeightGood = recentMeasurements.every((m) => m.value < 4);
+                        gageHeightGood = recentMeasurements.every((m) => m.value <= 4);
+                        gageHeightBad = recentMeasurements.some((m) => m.value > 4);
                     }
                 }
 
                 if (categoryName.toLowerCase().includes('streamflow') && measurements.length > 0) {
                     const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
                     if (recentMeasurements.length > 0) {
-                        streamflowGood = recentMeasurements.every((m) => m.value < 1000);
+                        streamflowGood = recentMeasurements.every((m) => m.value <= 1000);
                         streamflowHigh = recentMeasurements.some((m) => m.value >= 3000);
                         streamflowModerate =
-                            !streamflowHigh && !streamflowGood && recentMeasurements.some((m) => m.value >= 1000);
+                            recentMeasurements.every((m) => m.value < 3000) && recentMeasurements.some((m) => m.value >= 1000);
                     }
                 }
             });
@@ -1257,16 +1263,12 @@ function displayUSACEData(data) {
             }
 
             let shouldShowOrangeBackground = false;
-            let shouldShowRedBackground = isCurrentlyGeneratingAbove5;
             const triggerTime = Storage.getGenerationTriggerTime();
             if (triggerTime) {
                 const triggerTimestamp = parseInt(triggerTime, 10);
                 const hoursElapsed = (now.getTime() - triggerTimestamp) / (1000 * 60 * 60);
-                if (hoursElapsed <= 4.5) {
+                if (hoursElapsed <= 6) {
                     shouldShowOrangeBackground = true;
-                }
-                if (hoursElapsed <= 14) {
-                    shouldShowRedBackground = true;
                 } else {
                     Storage.clearGenerationTriggerTime();
                 }
@@ -1277,21 +1279,19 @@ function displayUSACEData(data) {
             let indicatorText = '';
             let indicatorColor = '';
 
-            const cautionOrange =
-                turbidityGood && gageHeightGood && streamflowGood && shouldShowOrangeBackground;
-            const streamflowOrange =
-                !shouldShowRedBackground && !shouldShowOrangeBackground &&
-                turbidityGood && gageHeightGood && streamflowModerate;
+            const isGreen = turbidityGood && gageHeightGood && streamflowGood;
+            const isOrange = gageHeightGood && (turbidityModerate || streamflowModerate || shouldShowOrangeBackground);
+            const isRed = gageHeightBad || turbidityBad || streamflowHigh;
 
-            if (cautionOrange || streamflowOrange) {
+            if (isOrange) {
                 backgroundColor = 'rgba(255, 152, 0, 0.5)';
                 indicatorText = '⚠️ Caution: Recent Generation Activity';
                 indicatorColor = 'rgba(255, 152, 0, 0.9)';
-            } else if (!gageHeightGood || streamflowHigh || shouldShowRedBackground) {
+            } else if (isRed) {
                 backgroundColor = 'rgba(244, 67, 54, 0.5)';
                 indicatorText = '🚫 Poor Fishing: High Water';
                 indicatorColor = 'rgba(244, 67, 54, 0.9)';
-            } else if (turbidityGood && gageHeightGood && streamflowGood) {
+            } else if (isGreen) {
                 backgroundColor = 'rgba(76, 175, 80, 0.5)';
                 indicatorText = '🎣 Excellent Fishing Conditions!';
                 indicatorColor = 'rgba(76, 175, 80, 0.9)';
