@@ -23,10 +23,10 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 - **Historical Analysis**: Tracks generation patterns over time
 
 ### 📊 Enhanced Data Visualization
-- **Summary Cards**: Quick overview of key parameters with trend indicators
-- **Trend Analysis**: 3-hour trend arrows showing parameter direction (applied to trend indicators only)
+- **Summary Cards**: Quick overview of key parameters with condition-based color coding
+- **Trend Analysis**: 3-hour trend arrows showing parameter direction in dedicated indicators
 - **Rate of Change**: Average change per hour over the last 3 hours with stability, rising, and falling cues
-- **Condition-Based Styling**: Latest values are color-coded based on fishing condition thresholds (gage height, turbidity, streamflow, temperature only)
+- **Color-Coded Values**: Latest values display in green (good), orange (caution), or red (poor) based on fishing conditions
 - **Interactive Filters**: Toggle visibility of different data categories
 - **Temperature Units**: Switch between Celsius and Fahrenheit
 
@@ -39,40 +39,12 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 
 ## Fishing Condition Logic
 
-### Summary Card Latest-Value Styling (Per-Category)
-
-Latest values are color-coded based on individual parameter thresholds:
-
-#### Gage Height
-- 🟢 **Good** (< 3.5 ft)
-- 🟠 **Caution** (3.5 - 4 ft)
-- 🔴 **Poor** (> 4 ft)
-
-#### Turbidity
-- 🟢 **Good** (≤ 8 NTU)
-- 🟠 **Caution** (8 - 9 NTU)
-- 🔴 **Poor** (≥ 9 NTU)
-
-#### Streamflow
-- 🟢 **Good** (≤ 1000 ft³/s)
-- 🟠 **Caution** (1000 - 3000 ft³/s)
-- 🔴 **Poor** (≥ 3000 ft³/s)
-
-#### Temperature (°F)
-- 🟢 **Good** (45 - 65°F)
-- 🟠 **Caution** (40-45°F or 65-67°F)
-- 🔴 **Poor** (< 40°F or > 67°F)
-
-### Background Color Logic (Overall Conditions)
-
-#### Green Background (Excellent Fishing)
+### Green Background (Excellent Fishing)
 - Gage Height ≤ 4 ft for past hour **AND**
 - Turbidity ≤ 8 NTU for past hour **AND**
-- Streamflow ≤ 1000 ft³/s for past hour **AND**
-- Temperature 45-65°F for past hour **AND**
-- Dam generation < 5 MW or not active within last 8 hours
+- Streamflow ≤ 1000 ft³/s for past hour
 
-#### Orange Background (Caution)
+### Orange Background (Caution)
 - Gage Height ≤ 4 ft for past hour **AND**
 - Turbidity between 8 and 9 NTU for past hour
   **OR**
@@ -80,17 +52,36 @@ Latest values are color-coded based on individual parameter thresholds:
 - Streamflow between 1000 ft³/s and 3000 ft³/s for past hour
   **OR**
 - Gage Height ≤ 4 ft for past hour **AND**
-- Temperature 40-45°F or 65-67°F for past hour
-  **OR**
-- Gage Height ≤ 4 ft for past hour **AND**
-- Dam generation ≥ 5 MW is active or was recorded within the last 4-6 hours
+- Dam generation ≥ 5 MW is active or was recorded within the last 6 hours
 
-#### Red Background (Poor Fishing)
+### Red Background (Poor Fishing)
 - Gage Height > 4 ft for past hour **OR**
 - Turbidity ≥ 9 NTU for past hour **OR**
-- Streamflow ≥ 3000 ft³/s for past hour **OR**
-- Temperature < 40°F or > 67°F for past hour **OR**
-- Dam generation ≥ 5 MW is active or was recorded within the last 6 hours
+- Streamflow ≥ 3000 ft³/s for past hour
+
+## Condition-Based Value Coloring
+
+Latest values in summary cards are color-coded based on fishing condition thresholds:
+
+### Gage Height
+- 🟢 **Green (Good)**: < 3.5 ft
+- 🟠 **Orange (Caution)**: 3.5 - 4 ft
+- 🔴 **Red (Poor)**: > 4 ft
+
+### Turbidity
+- 🟢 **Green (Good)**: ≤ 8 NTU
+- 🟠 **Orange (Caution)**: 8 - 9 NTU
+- 🔴 **Red (Poor)**: ≥ 9 NTU
+
+### Streamflow
+- 🟢 **Green (Good)**: ≤ 1000 ft³/s
+- 🟠 **Orange (Caution)**: 1000 - 3000 ft³/s
+- 🔴 **Red (Poor)**: ≥ 3000 ft³/s
+
+### Temperature
+- 🟢 **Green (Good)**: 45 - 65°F
+- 🟠 **Orange (Caution)**: 40 - 45°F or 65 - 67°F
+- 🔴 **Red (Poor)**: < 40°F or > 67°F
 
 ## Usage
 
@@ -148,9 +139,14 @@ The dashboard shows comprehensive water quality and operational parameters:
 └── docs/
     ├── app-logic.md
     └── INDEX_REVIEW.md
+```
+
+- `index.html` contains the full dashboard markup and links to all external assets.
+- `assets/css/styles.css` holds all layout, typography, and responsive rules.
+- `assets/js/app.js` manages data fetching, state handling, and UI interactions.
 - `assets/icons/` stores favicon and installability icons referenced by `index.html` and `site.webmanifest`.
 - `site.webmanifest` exposes install metadata for browsers and devices.
-- `docs/app-logic.md` contains detailed documentation of fishing condition logic and thresholds.
+- `docs/app-logic.md` documents the fishing condition logic, value coloring thresholds, and application behavior.
 - `docs/INDEX_REVIEW.md` captures the latest manual review notes and priorities.
 
 ## Technical Details
