@@ -232,7 +232,7 @@ const UI = (() => {
         }
 
         if (summaryBtn) {
-            summaryBtn.textContent = getSummaryExpanded() ? 'Hide Summary' : 'Show Summary';
+            summaryBtn.textContent = getSummaryExpanded() ? 'Collapse' : 'Expand';
         }
 
         if (tempToggleInput) {
@@ -616,9 +616,6 @@ function displayUSACEData(data) {
             toggleBtn.type = 'button';
             toggleBtn.className = 'table-toggle-btn';
             toggleBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
-            toggleBtn.style.padding = '4px 8px';
-            toggleBtn.style.fontSize = '0.9em';
-            toggleBtn.style.cursor = 'pointer';
             toggleBtn.addEventListener('click', () => toggleTableVisibility(collapsedKey));
             tableHeader.appendChild(toggleBtn);
 
@@ -1509,9 +1506,6 @@ function displayUSACEData(data) {
                     toggleBtn.type = 'button';
                     toggleBtn.className = 'table-toggle-btn';
                     toggleBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
-                    toggleBtn.style.padding = '4px 8px';
-                    toggleBtn.style.fontSize = '0.9em';
-                    toggleBtn.style.cursor = 'pointer';
                     toggleBtn.addEventListener('click', () => toggleTableVisibility(categoryName));
                     tableHeader.appendChild(toggleBtn);
 
@@ -1691,8 +1685,11 @@ function displayUSACEData(data) {
             const newValue = !AppState.getSummaryExpanded();
             AppState.setSummaryExpanded(newValue);
             Storage.saveSettings();
+            const summaryContainer = UI.DOM.summaryContainer();
+            if (summaryContainer) {
+                summaryContainer.style.display = newValue ? 'grid' : 'none';
+            }
             UI.syncToggleStates();
-            displayTable(AppState.getCurrentData());
         }
 
         function toggleTableVisibility(categoryName) {

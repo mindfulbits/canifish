@@ -283,25 +283,10 @@ font-weight: bold;
 color: #333;
 }
 
-.summary-toggle-btn {
-display: flex;
-align-items: center;
-gap: 8px;
-background: rgba(255, 255, 255, 0.95);
-border-radius: 20px;
-padding: 8px 15px;
-box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-border: 2px solid #667eea;
-font-size: 0.9rem;
-font-weight: bold;
-color: #333;
-cursor: pointer;
-transition: all 0.2s;
-}
-
-.summary-toggle-btn:hover {
-background: rgba(102, 126, 234, 0.1);
-transform: translateY(-1px);
+.table-toggle-btn{
+    padding: 4px 8px; 
+    font-size: 0.9em; 
+    cursor: pointer
 }
 
 .data-tables-section {
