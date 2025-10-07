@@ -623,9 +623,9 @@ function displayUSACEData(data) {
             title.innerHTML = `
                 <span>${label}</span>
                 <span class="day-date">${date.toLocaleDateString('en-US', {
-                    weekday: 'long',
+                    weekday: 'short',
                     year: 'numeric',
-                    month: 'long',
+                    month: 'short',
                     day: 'numeric'
                 })}</span>
             `;

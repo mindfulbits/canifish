@@ -310,6 +310,10 @@ font-weight: bold;
 color: #333;
 }
 
+.day-date {
+    margin-left: 10px;
+}
+
 .data-tables-toggle-btn {
 display: flex;
 align-items: center;
