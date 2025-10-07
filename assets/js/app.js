@@ -1658,20 +1658,12 @@ function displayUSACEData(data) {
             const tableElement = document.getElementById(tableId);
             if (!tableElement) return;
 
-            if (!AppState.getDataTablesExpanded()) {
-                toggleDataTablesVisibility();
-            }
-
             UI.scrollToElement(tableElement);
         }
 
         function scrollToDamTable() {
             const damCurrentDayTable = document.getElementById('dam-current-day-table');
             if (!damCurrentDayTable) return;
-
-            if (!AppState.getUsaceExpanded()) {
-                toggleUSACEVisibility();
-            }
 
             UI.scrollToElement(damCurrentDayTable);
         }
