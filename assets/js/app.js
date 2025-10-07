@@ -296,6 +296,32 @@ const UI = (() => {
         }, 1000);
     }
 
+    function createTableHeaderWithToggle(titleElement, toggleKey, container) {
+        // Create header with title and toggle button
+        const tableHeader = document.createElement('div');
+        tableHeader.className = 'table-header';
+        tableHeader.style.display = 'flex';
+        tableHeader.style.alignItems = 'center';
+        tableHeader.style.justifyContent = 'space-between';
+        tableHeader.style.marginBottom = '15px';
+
+        tableHeader.appendChild(titleElement);
+
+        const collapsedTables = AppState.getCollapsedTables();
+        const isCollapsed = collapsedTables[toggleKey] || false;
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'table-toggle-btn';
+        toggleBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
+        toggleBtn.addEventListener('click', () => toggleTableVisibility(toggleKey));
+        tableHeader.appendChild(toggleBtn);
+
+        container.appendChild(tableHeader);
+
+        return isCollapsed;
+    }
+
     return {
         DOM,
         showLoadingSkeletons,
@@ -307,7 +333,8 @@ const UI = (() => {
         toggleSectionVisibility,
         renderCategoryFilters,
         lazyUpdateContainer,
-        scrollToElement
+        scrollToElement,
+        createTableHeaderWithToggle
     };
 })();
 
@@ -589,15 +616,7 @@ function displayUSACEData(data) {
 
             const collapsedTables = AppState.getCollapsedTables();
             const collapsedKey = 'usace-' + key;
-            const isCollapsed = collapsedTables[collapsedKey] || false;
-
-            // Create header with title and toggle button
-            const tableHeader = document.createElement('div');
-            tableHeader.className = 'table-header';
-            tableHeader.style.display = 'flex';
-            tableHeader.style.alignItems = 'center';
-            tableHeader.style.justifyContent = 'space-between';
-            tableHeader.style.marginBottom = '15px';
+            let isCollapsed = collapsedTables[collapsedKey] || false;
 
             const title = document.createElement('div');
             title.className = 'day-table-title';
@@ -610,16 +629,8 @@ function displayUSACEData(data) {
                     day: 'numeric'
                 })}</span>
             `;
-            tableHeader.appendChild(title);
 
-            const toggleBtn = document.createElement('button');
-            toggleBtn.type = 'button';
-            toggleBtn.className = 'table-toggle-btn';
-            toggleBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
-            toggleBtn.addEventListener('click', () => toggleTableVisibility(collapsedKey));
-            tableHeader.appendChild(toggleBtn);
-
-            container.appendChild(tableHeader);
+            isCollapsed = UI.createTableHeaderWithToggle(title, collapsedKey, container);
 
             const table = document.createElement('table');
             table.className = 'generation-table';
@@ -1482,15 +1493,7 @@ function displayUSACEData(data) {
                     tableContainer.id = 'table-' + categoryName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 
                     const collapsedTables = AppState.getCollapsedTables();
-                    const isCollapsed = collapsedTables[categoryName] || false;
-
-                    // Create header with title and toggle button
-                    const tableHeader = document.createElement('div');
-                    tableHeader.className = 'table-header';
-                    tableHeader.style.display = 'flex';
-                    tableHeader.style.alignItems = 'center';
-                    tableHeader.style.justifyContent = 'space-between';
-                    tableHeader.style.marginBottom = '15px';
+                    let isCollapsed = collapsedTables[categoryName] || false;
 
                     const title = document.createElement('h3');
                     title.textContent = categoryName;
@@ -1500,16 +1503,8 @@ function displayUSACEData(data) {
                         title.title = measurements.originalTitle;
                         title.style.cursor = 'help';
                     }
-                    tableHeader.appendChild(title);
 
-                    const toggleBtn = document.createElement('button');
-                    toggleBtn.type = 'button';
-                    toggleBtn.className = 'table-toggle-btn';
-                    toggleBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
-                    toggleBtn.addEventListener('click', () => toggleTableVisibility(categoryName));
-                    tableHeader.appendChild(toggleBtn);
-
-                    tableContainer.appendChild(tableHeader);
+                    isCollapsed = UI.createTableHeaderWithToggle(title, categoryName, tableContainer);
 
                     const table = document.createElement('table');
                     table.className = 'data-table';
