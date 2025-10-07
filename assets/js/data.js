@@ -333,19 +333,20 @@ function checkFishingConditions(categories, usaceData) {
     let indicatorText = '';
     let indicatorColor = '';
 
-    const isGreen = turbidityGood && gageHeightGood && streamflowGood;
-    const isOrange = gageHeightGood && (turbidityModerate || streamflowModerate || shouldShowOrangeBackground);
-    const isRed = gageHeightBad || turbidityBad || streamflowHigh;
+    let worstPriority = 0;
 
-    if (isOrange) {
-        backgroundColor = 'rgba(255, 152, 0, 0.5)';
-        indicatorText = '⚠️ Caution: Turbidity 8-9 NTU, Streamflow 1000-3000 ft³/s,  or Recent Generation Activity';
-        indicatorColor = 'rgba(255, 152, 0, 0.9)';
-    } else if (isRed) {
+    if (gageHeightBad || turbidityBad || streamflowHigh) {
+        worstPriority = 3;
         backgroundColor = 'rgba(244, 67, 54, 0.5)';
         indicatorText = '🚫 Poor Fishing: High Water, Turbidity > 9 NTU, or Streamflow > 3000 ft³/s';
         indicatorColor = 'rgba(244, 67, 54, 0.9)';
-    } else if (isGreen) {
+    } else if (gageHeightGood && (turbidityModerate || streamflowModerate || shouldShowOrangeBackground)) {
+        worstPriority = 2;
+        backgroundColor = 'rgba(255, 152, 0, 0.5)';
+        indicatorText = '⚠️ Caution: Turbidity 8-9 NTU, Streamflow 1000-3000 ft³/s, or Recent Generation Activity';
+        indicatorColor = 'rgba(255, 152, 0, 0.9)';
+    } else if (turbidityGood && gageHeightGood && streamflowGood) {
+        worstPriority = 1;
         backgroundColor = 'rgba(76, 175, 80, 0.5)';
         indicatorText = '🎣 Excellent Fishing Conditions!';
         indicatorColor = 'rgba(76, 175, 80, 0.9)';
