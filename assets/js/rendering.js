@@ -283,7 +283,7 @@ function createSummaryCard(categoryName, measurements) {
             categoryName.includes('°C') ||
             categoryName.includes('deg C');
 
-        const latestTime = new Date(measurements[0].datetime);
+        const latestTime = new Date(measurements[0]?.datetime || '');
         if (Number.isNaN(latestTime.getTime())) {
             trendArrow.textContent = '?';
             trendArrow.classList.add('trend-stable');
@@ -310,7 +310,7 @@ function createSummaryCard(categoryName, measurements) {
             let prevValue = latestValue;
 
             for (let i = 1; i < measurements.length && totalHours < 3; i++) {
-                const currentTime = new Date(measurements[i].datetime);
+                const currentTime = new Date(measurements[i]?.datetime || '');
                 if (Number.isNaN(currentTime.getTime()) || currentTime > prevTime) {
                     continue;
                 }
@@ -489,14 +489,7 @@ function createDamSummaryCard(data) {
         const now = new Date();
         const updateTime = new Date(data.timestamp);
         const diffMinutes = Math.floor((now - updateTime) / (1000 * 60));
-        let timeText = 'just now';
-        if (diffMinutes === 1) timeText = '1 minute ago';
-        else if (diffMinutes > 1 && diffMinutes < 60) timeText = `${diffMinutes} minutes ago`;
-        else if (diffMinutes >= 60 && diffMinutes < 120) timeText = '1 hour ago';
-        else if (diffMinutes >= 120) {
-            const hours = Math.floor(diffMinutes / 60);
-            timeText = `${hours} hours ago`;
-        }
+        let timeText = Utils.formatTimeAgo(diffMinutes);
         statusInfo.textContent = timeText;
     } else {
         statusInfo.textContent = 'No timestamp available';
@@ -818,19 +811,7 @@ function updateTimeSinceUpdate() {
     const updateDate = new Date(parseInt(updateTime, 10));
     const diffMinutes = Math.floor((now - updateDate) / (1000 * 60));
 
-    let timeText;
-    if (diffMinutes < 1) {
-        timeText = 'just now';
-    } else if (diffMinutes === 1) {
-        timeText = '1 minute ago';
-    } else if (diffMinutes < 60) {
-        timeText = `${diffMinutes} minutes ago`;
-    } else if (diffMinutes < 120) {
-        timeText = '1 hour ago';
-    } else {
-        const hours = Math.floor(diffMinutes / 60);
-        timeText = `${hours} hours ago`;
-    }
+    let timeText = Utils.formatTimeAgo(diffMinutes);
 
     const currentText = lastUpdated.innerHTML || '';
     if (currentText.includes('Data unavailable')) {

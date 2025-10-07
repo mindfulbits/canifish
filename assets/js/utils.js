@@ -29,9 +29,19 @@ const Utils = (() => {
         }
     }
 
+    function formatTimeAgo(diffMinutes) {
+        if (diffMinutes < 1) return 'just now';
+        if (diffMinutes === 1) return '1 minute ago';
+        if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+        if (diffMinutes < 120) return '1 hour ago';
+        const hours = Math.floor(diffMinutes / 60);
+        return `${hours} hours ago`;
+    }
+
     return {
         celsiusToFahrenheit,
         formatDateTime,
-        safeJSONParse
+        safeJSONParse,
+        formatTimeAgo
     };
 })();

@@ -221,7 +221,7 @@ function checkFishingConditions(categories, usaceData) {
 
     Object.entries(categories).forEach(([categoryName, measurements]) => {
         if (categoryName.toLowerCase().includes('turbidity') && measurements.length > 0) {
-            const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
+            const recentMeasurements = measurements.filter((m) => m?.datetime && new Date(m.datetime) >= oneHourAgo);
             if (recentMeasurements.length > 0) {
                 turbidityGood = recentMeasurements.every((m) => m.value <= 8);
                 turbidityModerate = recentMeasurements.every((m) => m.value < 9) && recentMeasurements.some((m) => m.value > 8);
@@ -230,7 +230,7 @@ function checkFishingConditions(categories, usaceData) {
         }
 
         if (categoryName.toLowerCase().includes('gage height') && measurements.length > 0) {
-            const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
+            const recentMeasurements = measurements.filter((m) => m?.datetime && new Date(m.datetime) >= oneHourAgo);
             if (recentMeasurements.length > 0) {
                 gageHeightGood = recentMeasurements.every((m) => m.value <= 4);
                 gageHeightBad = recentMeasurements.some((m) => m.value > 4);
@@ -238,7 +238,7 @@ function checkFishingConditions(categories, usaceData) {
         }
 
         if (categoryName.toLowerCase().includes('streamflow') && measurements.length > 0) {
-            const recentMeasurements = measurements.filter((m) => new Date(m.datetime) >= oneHourAgo);
+            const recentMeasurements = measurements.filter((m) => m?.datetime && new Date(m.datetime) >= oneHourAgo);
             if (recentMeasurements.length > 0) {
                 streamflowGood = recentMeasurements.every((m) => m.value <= 1000);
                 streamflowHigh = recentMeasurements.some((m) => m.value >= 3000);
