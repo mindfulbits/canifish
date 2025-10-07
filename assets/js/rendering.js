@@ -226,45 +226,7 @@ function calculateTimeSince(measurements) {
     }
 }
 
-function createSummaryCard(categoryName, measurements) {
-    const card = document.createElement('div');
-    card.className = 'summary-card';
-
-    const summaryInfo = document.createElement('div');
-    summaryInfo.className = 'summary-info';
-
-    const title = document.createElement('div');
-    title.className = 'summary-title';
-    title.textContent = categoryName;
-    if (measurements.originalTitle) {
-        title.title = measurements.originalTitle;
-    }
-    title.style.cursor = 'pointer';
-    title.onclick = () => scrollToTable(categoryName);
-    summaryInfo.appendChild(title);
-
-    const latestValue = document.createElement('div');
-    latestValue.className = 'latest-value';
-
-    const preferFahrenheit = AppState.getUseFahrenheit();
-    const isTemperature = categoryName.toLowerCase().includes('temperature') ||
-        categoryName.includes('°C') ||
-        categoryName.includes('deg C');
-
-    const { text, value } = getDisplayInfo(measurements, isTemperature, preferFahrenheit);
-    latestValue.innerHTML = text;
-
-    // Add condition-based CSS class
-    const conditionClass = getConditionClass(value, categoryName, isTemperature);
-    if (conditionClass) latestValue.classList.add(conditionClass);
-
-    summaryInfo.appendChild(latestValue);
-
-    const timeSince = document.createElement('div');
-    timeSince.className = 'time-since';
-    timeSince.innerHTML = calculateTimeSince(measurements);
-    summaryInfo.appendChild(timeSince);
-
+function calculateTrend(measurements, isTemperature, preferFahrenheit) {
     const trendIndicator = document.createElement('div');
     trendIndicator.className = 'trend-indicator';
 
@@ -278,12 +240,6 @@ function createSummaryCard(categoryName, measurements) {
     rateOfChange.className = 'rate-of-change';
 
     if (measurements.length >= 2) {
-        const preferFahrenheit = AppState.getUseFahrenheit();
-        const isTemperature =
-            categoryName.toLowerCase().includes('temperature') ||
-            categoryName.includes('°C') ||
-            categoryName.includes('deg C');
-
         const latestTime = new Date(measurements[0]?.datetime || '');
         if (Number.isNaN(latestTime.getTime())) {
             trendArrow.textContent = '?';
@@ -294,28 +250,21 @@ function createSummaryCard(categoryName, measurements) {
             rateOfChange.classList.add('trend-stable');
         } else {
             const windowStart = new Date(latestTime.getTime() - 3 * 60 * 60 * 1000);
-
             const toDisplayValue = (rawValue) => {
                 if (isTemperature && preferFahrenheit) {
                     return Utils.celsiusToFahrenheit(rawValue);
                 }
                 return rawValue;
             };
-
             let latestValue = toDisplayValue(measurements[0].value);
             let baselineValue = latestValue;
             let totalDiff = 0;
             let totalHours = 0;
-
             let prevTime = latestTime;
             let prevValue = latestValue;
-
             for (let i = 1; i < measurements.length && totalHours < 3; i++) {
                 const currentTime = new Date(measurements[i]?.datetime || '');
-                if (Number.isNaN(currentTime.getTime()) || currentTime > prevTime) {
-                    continue;
-                }
-
+                if (Number.isNaN(currentTime.getTime()) || currentTime > prevTime) continue;
                 const currentValue = toDisplayValue(measurements[i].value);
                 const segmentHours = (prevTime - currentTime) / (1000 * 60 * 60);
                 if (segmentHours <= 0) {
@@ -323,17 +272,14 @@ function createSummaryCard(categoryName, measurements) {
                     prevValue = currentValue;
                     continue;
                 }
-
                 if (currentTime <= windowStart) {
                     const hoursWithinWindow = (prevTime - windowStart) / (1000 * 60 * 60);
                     const totalSegmentHours = segmentHours;
-
                     let valueAtWindowStart = currentValue;
                     if (totalSegmentHours > 0) {
                         const ratio = hoursWithinWindow / totalSegmentHours;
                         valueAtWindowStart = prevValue - (prevValue - currentValue) * ratio;
                     }
-
                     totalDiff += prevValue - valueAtWindowStart;
                     totalHours += hoursWithinWindow;
                     baselineValue = valueAtWindowStart;
@@ -346,9 +292,7 @@ function createSummaryCard(categoryName, measurements) {
                     prevValue = currentValue;
                 }
             }
-
             totalHours = Math.min(totalHours, 3);
-
             if (totalHours <= 0) {
                 trendArrow.textContent = '?';
                 trendArrow.classList.add('trend-stable');
@@ -361,7 +305,6 @@ function createSummaryCard(categoryName, measurements) {
                 const percentChange = Math.abs(baselineValue) > 0 ? Math.abs((difference / baselineValue) * 100) : 0;
                 const ratePerHour = totalDiff / totalHours;
                 const trendTitle = 'Average change over past 3 hours';
-
                 if (percentChange < 2) {
                     trendArrow.textContent = '→';
                     trendArrow.classList.add('trend-stable');
@@ -413,6 +356,50 @@ function createSummaryCard(categoryName, measurements) {
     trendIndicator.appendChild(trendArrow);
     trendIndicator.appendChild(trendText);
     trendIndicator.appendChild(rateOfChange);
+
+    return trendIndicator;
+}
+
+function createSummaryCard(categoryName, measurements) {
+    const card = document.createElement('div');
+    card.className = 'summary-card';
+
+    const summaryInfo = document.createElement('div');
+    summaryInfo.className = 'summary-info';
+
+    const title = document.createElement('div');
+    title.className = 'summary-title';
+    title.textContent = categoryName;
+    if (measurements.originalTitle) {
+        title.title = measurements.originalTitle;
+    }
+    title.style.cursor = 'pointer';
+    title.onclick = () => scrollToTable(categoryName);
+    summaryInfo.appendChild(title);
+
+    const latestValue = document.createElement('div');
+    latestValue.className = 'latest-value';
+
+    const preferFahrenheit = AppState.getUseFahrenheit();
+    const isTemperature = categoryName.toLowerCase().includes('temperature') ||
+        categoryName.includes('°C') ||
+        categoryName.includes('deg C');
+
+    const { text, value } = getDisplayInfo(measurements, isTemperature, preferFahrenheit);
+    latestValue.innerHTML = text;
+
+    // Add condition-based CSS class
+    const conditionClass = getConditionClass(value, categoryName, isTemperature);
+    if (conditionClass) latestValue.classList.add(conditionClass);
+
+    summaryInfo.appendChild(latestValue);
+
+    const timeSince = document.createElement('div');
+    timeSince.className = 'time-since';
+    timeSince.innerHTML = calculateTimeSince(measurements);
+    summaryInfo.appendChild(timeSince);
+
+    const trendIndicator = calculateTrend(measurements, isTemperature, preferFahrenheit);
 
     card.appendChild(summaryInfo);
     card.appendChild(trendIndicator);
