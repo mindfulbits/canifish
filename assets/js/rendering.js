@@ -169,6 +169,63 @@ function createDayTable(schedule, date, label, currentHour, isToday, key) {
     return container;
 }
 
+function getDisplayInfo(measurements, isTemperature, preferFahrenheit) {
+    if (measurements.length === 0) return { text: '<span style="color: #dc3545;">N/A</span>', value: null };
+    let rawValue = measurements[0].value;
+    if (isTemperature) {
+        const fahrenheit = Utils.celsiusToFahrenheit(rawValue);
+        const displayValue = preferFahrenheit ? fahrenheit : rawValue;
+        return {
+            text: `${displayValue.toFixed(1)}${preferFahrenheit ? '°F' : '°C'}`,
+            value: fahrenheit
+        };
+    } else {
+        return {
+            text: rawValue.toFixed(2),
+            value: rawValue
+        };
+    }
+}
+
+function getConditionClass(value, categoryName, isTemperature) {
+    if (isTemperature) {
+        if (value >= 45 && value <= 65) return 'good';
+        if ((value >= 40 && value < 45) || (value > 65 && value <= 67)) return 'caution';
+        return 'poor';
+    }
+    const lower = categoryName.toLowerCase();
+    if (lower.includes('gage height')) {
+        if (value < 3.5) return 'good';
+        if (value >= 3.5 && value <= 4) return 'caution';
+        return 'poor';
+    }
+    if (lower.includes('turbidity')) {
+        if (value <= 8) return 'good';
+        if (value > 8 && value < 9) return 'caution';
+        return 'poor';
+    }
+    if (lower.includes('streamflow')) {
+        if (value <= 1000) return 'good';
+        if (value > 1000 && value < 3000) return 'caution';
+        return 'poor';
+    }
+    return '';
+}
+
+function calculateTimeSince(measurements) {
+    if (measurements.length === 0) return '<span style="color: #dc3545;">N/A</span>';
+    const lastTime = new Date(measurements[0].datetime);
+    const now = new Date();
+    const diffMinutes = Math.floor((now - lastTime) / (1000 * 60));
+    if (diffMinutes < 60) {
+        return `${diffMinutes} minutes ago`;
+    } else {
+        const diffHours = Math.floor(diffMinutes / 60);
+        const remainingMinutes = diffMinutes % 60;
+        return `${diffHours}h ${remainingMinutes}m ago`;
+    }
+}
+
 function createSummaryCard(categoryName, measurements) {
     const card = document.createElement('div');
     card.className = 'summary-card';
@@ -189,79 +246,23 @@ function createSummaryCard(categoryName, measurements) {
     const latestValue = document.createElement('div');
     latestValue.className = 'latest-value';
 
-    if (measurements.length > 0) {
-        const preferFahrenheit = AppState.getUseFahrenheit();
-        const isTemperature =
-            categoryName.toLowerCase().includes('temperature') ||
-            categoryName.includes('°C') ||
-            categoryName.includes('deg C');
+    const preferFahrenheit = AppState.getUseFahrenheit();
+    const isTemperature = categoryName.toLowerCase().includes('temperature') ||
+        categoryName.includes('°C') ||
+        categoryName.includes('deg C');
 
-        let displayValue = measurements[0].value;
-        if (isTemperature) {
-            displayValue = preferFahrenheit ? Utils.celsiusToFahrenheit(displayValue) : displayValue;
-            latestValue.textContent = `${displayValue.toFixed(1)}${preferFahrenheit ? '°F' : '°C'}`;
-        } else {
-            latestValue.textContent = displayValue.toFixed(2);
-        }
+    const { text, value } = getDisplayInfo(measurements, isTemperature, preferFahrenheit);
+    latestValue.innerHTML = text;
 
-        // Add condition-based CSS class to latest-value
-        const fahrenheitValue = isTemperature ? (preferFahrenheit ? displayValue : Utils.celsiusToFahrenheit(displayValue)) : null;
+    // Add condition-based CSS class
+    const conditionClass = getConditionClass(value, categoryName, isTemperature);
+    if (conditionClass) latestValue.classList.add(conditionClass);
 
-        if (categoryName.toLowerCase().includes('gage height')) {
-            if (displayValue < 3.5) {
-                latestValue.classList.add('good');
-            } else if (displayValue >= 3.5 && displayValue <= 4) {
-                latestValue.classList.add('caution');
-            } else if (displayValue > 4) {
-                latestValue.classList.add('poor');
-            }
-        } else if (categoryName.toLowerCase().includes('turbidity')) {
-            if (displayValue <= 8) {
-                latestValue.classList.add('good');
-            } else if (displayValue > 8 && displayValue < 9) {
-                latestValue.classList.add('caution');
-            } else if (displayValue >= 9) {
-                latestValue.classList.add('poor');
-            }
-        } else if (categoryName.toLowerCase().includes('streamflow')) {
-            if (displayValue <= 1000) {
-                latestValue.classList.add('good');
-            } else if (displayValue > 1000 && displayValue < 3000) {
-                latestValue.classList.add('caution');
-            } else if (displayValue >= 3000) {
-                latestValue.classList.add('poor');
-            }
-        } else if (isTemperature && fahrenheitValue !== null) {
-            if (fahrenheitValue >= 45 && fahrenheitValue <= 65) {
-                latestValue.classList.add('good');
-            } else if ((fahrenheitValue >= 40 && fahrenheitValue < 45) || (fahrenheitValue > 65 && fahrenheitValue <= 67)) {
-                latestValue.classList.add('caution');
-            } else if (fahrenheitValue < 40 || fahrenheitValue > 67) {
-                latestValue.classList.add('poor');
-            }
-        }
-
-    } else {
-        latestValue.innerHTML = '<span style="color: #dc3545;">N/A</span>';
-    }
     summaryInfo.appendChild(latestValue);
 
     const timeSince = document.createElement('div');
     timeSince.className = 'time-since';
-    if (measurements.length > 0) {
-        const lastTime = new Date(measurements[0].datetime);
-        const now = new Date();
-        const diffMinutes = Math.floor((now - lastTime) / (1000 * 60));
-        if (diffMinutes < 60) {
-            timeSince.textContent = `${diffMinutes} minutes ago`;
-        } else {
-            const diffHours = Math.floor(diffMinutes / 60);
-            const remainingMinutes = diffMinutes % 60;
-            timeSince.textContent = `${diffHours}h ${remainingMinutes}m ago`;
-        }
-    } else {
-        timeSince.innerHTML = '<span style="color: #dc3545;">N/A</span>';
-    }
+    timeSince.innerHTML = calculateTimeSince(measurements);
     summaryInfo.appendChild(timeSince);
 
     const trendIndicator = document.createElement('div');
