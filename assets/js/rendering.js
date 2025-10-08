@@ -402,6 +402,10 @@ function createSummaryCard(categoryName, measurements) {
     const { text, value } = getDisplayInfo(measurements, isTemperature, preferFahrenheit);
     latestValue.innerHTML = text;
 
+    if (isTemperature) {
+        latestValue.title = "Preferred range 45 - 65°F";
+    }
+
     // Add condition-based CSS class
     const conditionClass = getConditionClass(value, categoryName, isTemperature);
     if (conditionClass) latestValue.classList.add(conditionClass);
