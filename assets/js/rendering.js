@@ -209,6 +209,10 @@ function getConditionClass(value, categoryName, isTemperature) {
         if (value > 1000 && value < 3000) return 'caution';
         return 'poor';
     }
+    if (lower.includes('escherichia coli') || lower.includes('e. coli')) {
+        if (value <= 235) return 'good';
+        return 'poor';
+    }
     return '';
 }
 

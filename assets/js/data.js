@@ -234,6 +234,15 @@ function evaluateStreamflow(measurements) {
     };
 }
 
+function evaluateEColi(measurements) {
+    if (measurements.length === 0) return { low: false, high: false };
+    const value = measurements[0].value;
+    return {
+        low: value <= 235,
+        high: value > 235
+    };
+}
+
 function checkFishingConditions(categories, usaceData) {
     let turbidityGood = false;
     let turbidityModerate = false;
