@@ -195,6 +195,13 @@ The dashboard prioritizes direct API access to official data sources, with autom
 - **USACE Dam Data**: Direct access to GitHub-hosted generation schedules
 - **Proxy Services**: AllOrigins, CORS Proxy, and CORS Anywhere as reliability backups
 
+## Information Source Credits
+Sources for information used in the application:
+- E.coli: [BacteriALERT Realtime Monitoring](https://ga.water.usgs.gov/bacteria/)
+- Specific Conductance (µS/cm): [What Is The Typical Water Conductivity Range? | Atlas Scientific](https://atlas-scientific.com/blog/water-conductivity-range/)
+- Lanier Tailwater Conditions: Where to Find Them & How to Understand Them: [Lanier Tailwater Conditions: Where to Find Them & How to Understand Them | North Georgia Trout Online](https://www.georgia-outdoors.com/NGTO-Xenforo/index.php?threads/lanier-tailwater-conditions-where-to-find-them-how-to-understand-them.86/)
+- [RE-RELEASE: Tailwater MASTERCLASS - How to fish the Chattahoochee River - YouTube](https://www.youtube.com/watch?app=desktop&v=tBSnW2m520c)
+
 ### Running with a Local Server
 
 For reliable API access, serve the page from a local web server:
