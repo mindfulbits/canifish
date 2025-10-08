@@ -205,32 +205,32 @@ function parseTimeSeriesData(data) {
     return categories;
 }
 
-function evaluateTurbidity(measurements, oneHourAgo) {
-    const recent = measurements.filter(m => m?.datetime && new Date(m.datetime) >= oneHourAgo);
-    if (recent.length === 0) return { good: false, moderate: false, bad: false };
+function evaluateTurbidity(measurements) {
+    if (measurements.length === 0) return { good: false, moderate: false, bad: false };
+    const value = measurements[0].value;
     return {
-        good: recent.every(m => m.value <= 8),
-        moderate: recent.every(m => m.value < 9) && recent.some(m => m.value > 8),
-        bad: recent.some(m => m.value >= 9)
+        good: value <= 8,
+        moderate: value > 8 && value < 9,
+        bad: value >= 9
     };
 }
 
-function evaluateGageHeight(measurements, oneHourAgo) {
-    const recent = measurements.filter(m => m?.datetime && new Date(m.datetime) >= oneHourAgo);
-    if (recent.length === 0) return { good: false, bad: false };
+function evaluateGageHeight(measurements) {
+    if (measurements.length === 0) return { good: false, bad: false };
+    const value = measurements[0].value;
     return {
-        good: recent.every(m => m.value <= 4),
-        bad: recent.some(m => m.value > 4)
+        good: value <= 4,
+        bad: value > 4
     };
 }
 
-function evaluateStreamflow(measurements, oneHourAgo) {
-    const recent = measurements.filter(m => m?.datetime && new Date(m.datetime) >= oneHourAgo);
-    if (recent.length === 0) return { good: false, moderate: false, high: false };
+function evaluateStreamflow(measurements) {
+    if (measurements.length === 0) return { good: false, moderate: false, high: false };
+    const value = measurements[0].value;
     return {
-        good: recent.every(m => m.value <= 1000),
-        high: recent.some(m => m.value >= 3000),
-        moderate: recent.every(m => m.value < 3000) && recent.some(m => m.value >= 1000)
+        good: value <= 1000,
+        moderate: value >= 1000 && value < 3000,
+        high: value >= 3000
     };
 }
 
@@ -245,24 +245,23 @@ function checkFishingConditions(categories, usaceData) {
     let generationHoursAbove5 = 0;
 
     const now = new Date();
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
     Object.entries(categories).forEach(([categoryName, measurements]) => {
         if (categoryName.toLowerCase().includes('turbidity') && measurements.length > 0) {
-            const t = evaluateTurbidity(measurements, oneHourAgo);
+            const t = evaluateTurbidity(measurements);
             turbidityGood = t.good;
             turbidityModerate = t.moderate;
             turbidityBad = t.bad;
         }
 
         if (categoryName.toLowerCase().includes('gage height') && measurements.length > 0) {
-            const g = evaluateGageHeight(measurements, oneHourAgo);
+            const g = evaluateGageHeight(measurements);
             gageHeightGood = g.good;
             gageHeightBad = g.bad;
         }
 
         if (categoryName.toLowerCase().includes('streamflow') && measurements.length > 0) {
-            const s = evaluateStreamflow(measurements, oneHourAgo);
+            const s = evaluateStreamflow(measurements);
             streamflowGood = s.good;
             streamflowModerate = s.moderate;
             streamflowHigh = s.high;
