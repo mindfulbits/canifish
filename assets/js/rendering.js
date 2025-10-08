@@ -406,6 +406,10 @@ function createSummaryCard(categoryName, measurements) {
         latestValue.title = "Preferred range 45 - 65°F";
     }
 
+    if (categoryName.toLowerCase().includes('gage height')) {
+        latestValue.title = "Preferred range 2 - 4 ft";
+    }
+
     // Add condition-based CSS class
     const conditionClass = getConditionClass(value, categoryName, isTemperature);
     if (conditionClass) latestValue.classList.add(conditionClass);
