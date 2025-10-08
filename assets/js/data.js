@@ -328,68 +328,33 @@ function checkFishingConditions(categories, usaceData) {
     }
 
     const body = document.body;
-    let backgroundColor = '';
+    let fishingClass = '';
     let indicatorText = '';
-    let indicatorColor = '';
-
-    let worstPriority = 0;
 
     if (gageHeightBad || turbidityBad || streamflowHigh) {
-        worstPriority = 3;
-        backgroundColor = 'rgba(244, 67, 54, 0.5)';
+        fishingClass = 'poor';
         indicatorText = '🚫 Poor Fishing: High Water, Turbidity > 9 NTU, or Streamflow > 3000 ft³/s';
-        indicatorColor = 'rgba(244, 67, 54, 0.9)';
     } else if (gageHeightGood && (turbidityModerate || streamflowModerate || shouldShowOrangeBackground)) {
-        worstPriority = 2;
-        backgroundColor = 'rgba(255, 152, 0, 0.5)';
+        fishingClass = 'caution';
         indicatorText = '⚠️ Caution: Turbidity 8-9 NTU, Streamflow 1000-3000 ft³/s, or Recent Generation Activity';
-        indicatorColor = 'rgba(255, 152, 0, 0.9)';
     } else if (turbidityGood && gageHeightGood && streamflowGood) {
-        worstPriority = 1;
-        backgroundColor = 'rgba(76, 175, 80, 0.5)';
+        fishingClass = 'good';
         indicatorText = '🎣 Excellent Fishing Conditions!';
-        indicatorColor = 'rgba(76, 175, 80, 0.9)';
     }
 
     const existingIndicator = document.querySelector('.fishing-conditions-indicator');
-    if (backgroundColor) {
-        body.style.background = backgroundColor;
-        body.style.transition = 'background 1s ease-in-out';
+    if (fishingClass) {
+        // Remove previous fishing classes
+        body.classList.remove('fishing-good', 'fishing-caution', 'fishing-poor');
+        body.classList.add('fishing-' + fishingClass);
 
         if (existingIndicator) {
             existingIndicator.remove();
         }
 
         const indicator = document.createElement('div');
-        indicator.className = 'fishing-conditions-indicator';
+        indicator.className = 'fishing-conditions-indicator fishing-conditions-indicator-' + fishingClass;
         indicator.textContent = indicatorText;
-        indicator.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: ${indicatorColor};
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            z-index: 1001;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            animation: slideIn 0.5s ease-out;
-        `;
-
-        let indicatorStyle = document.getElementById('fishing-indicator-style');
-        if (!indicatorStyle) {
-            indicatorStyle = document.createElement('style');
-            indicatorStyle.id = 'fishing-indicator-style';
-            indicatorStyle.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-            `;
-            document.head.appendChild(indicatorStyle);
-        }
 
         document.body.appendChild(indicator);
 
@@ -400,7 +365,7 @@ function checkFishingConditions(categories, usaceData) {
             }
         }, 8000);
     } else {
-        body.style.background = '';
+        body.classList.remove('fishing-good', 'fishing-caution', 'fishing-poor');
         if (existingIndicator) {
             existingIndicator.remove();
         }
