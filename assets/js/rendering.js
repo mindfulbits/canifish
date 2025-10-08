@@ -194,6 +194,11 @@ function getConditionClass(value, categoryName, isTemperature) {
         return 'poor';
     }
     const lower = categoryName.toLowerCase();
+    if (lower.includes('precipitation')) {
+        if (value <= 1) return 'good';
+        if (value > 1 && value < 2) return 'caution';
+        return 'poor';
+    }
     if (lower.includes('gage height')) {
         if (value < 3.5) return 'good';
         if (value >= 3.5 && value <= 4) return 'caution';
@@ -209,8 +214,13 @@ function getConditionClass(value, categoryName, isTemperature) {
         if (value > 1000 && value < 3000) return 'caution';
         return 'poor';
     }
-    if (lower.includes('escherichia coli') || lower.includes('e. coli')) {
+    if (lower.includes('escherichia coli')) {
         if (value <= 235) return 'good';
+        return 'poor';
+    }
+    if (lower.includes('specific conductance')) {
+        if (value <= 800) return 'good';
+        if (value > 800 && value < 2000) return 'caution';
         return 'poor';
     }
     return '';

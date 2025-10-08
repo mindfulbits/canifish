@@ -171,13 +171,13 @@ function parseTimeSeriesData(data) {
             }
         };
 
-        renameIf('Turbidity', `Turbidity${unit ? ' - ' + unit : ''}`);
+        renameIf('Turbidity', `Turbidity (FNU)${unit ? ' - ' + unit : ''}`);
         renameIf('Temperature', `Temperature${unit ? ' - ' + unit : ''}`);
         renameIf('Precipitation', `Precipitation (in)${unit ? ' - ' + unit : ''}`);
         renameIf('Streamflow', `Streamflow (ft³/s)${unit ? ' - ' + unit : ''}`);
         renameIf('Gage height', `Gage Height (ft)${unit ? ' - ' + unit : ''}`);
-        renameIf('Specific conductance', `Specific Conductance${unit ? ' - ' + unit : ''}`);
-        renameIf('Escherichia coli', `Escherichia Coli${unit ? ' - ' + unit : ''}`);
+        renameIf('Specific conductance', `Specific Conductance (µS/cm)${unit ? ' - ' + unit : ''}`);
+        renameIf('Escherichia coli', `Escherichia Coli (cfu/100ml)${unit ? ' - ' + unit : ''}`);
 
         if (preferFahrenheit && (categoryKey.includes('°C') || categoryKey.includes('deg C'))) {
             categoryKey = categoryKey.replace(/°C|deg C/g, '°F');
@@ -231,15 +231,6 @@ function evaluateStreamflow(measurements) {
         good: value <= 1000,
         moderate: value >= 1000 && value < 3000,
         high: value >= 3000
-    };
-}
-
-function evaluateEColi(measurements) {
-    if (measurements.length === 0) return { low: false, high: false };
-    const value = measurements[0].value;
-    return {
-        low: value <= 235,
-        high: value > 235
     };
 }
 
