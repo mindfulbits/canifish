@@ -13,7 +13,7 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 - 🟢 **Green**: Excellent fishing conditions (Low turbidity, normal water level, low streamflow, no recent dam generation)
 - 🟠 **Orange**: Caution conditions (Good water quality with recent dam generation or elevated streamflow)
 - 🔴 **Red**: Poor fishing conditions (High water levels, high streamflow, or extended dam generation)
-- **Real-time Analysis**: Automatically evaluates turbidity, gage height, and dam generation patterns
+- **Real-time Analysis**: Automatically evaluates latest turbidity, gage height, and dam generation patterns
 - **Condition Notifications**: Floating indicators with specific fishing advice that appear on page load and data refresh, auto-hiding after 8 seconds
 
 ### 🏗️ Dam Generation Integration
@@ -29,6 +29,7 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 - **Color-Coded Values**: Latest values and dam generation display in green (good), orange (caution), or red (poor) based on fishing conditions
 - **Interactive Filters**: Toggle visibility of different data categories
 - **Temperature Units**: Switch between Celsius and Fahrenheit
+- **Latest Reading Logic**: All condition evaluations use the most recent measurement for immediate responsiveness
 
 ### 🌊 Comprehensive Water Data
 - Real-time water condition data from USGS API
@@ -40,24 +41,24 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 ## Fishing Condition Logic
 
 ### Green Background (Excellent Fishing)
-- Gage Height ≤ 4 ft for past hour **AND**
-- Turbidity ≤ 8 NTU for past hour **AND**
-- Streamflow ≤ 1000 ft³/s for past hour
+- Gage Height ≤ 4 ft (latest reading) **AND**
+- Turbidity ≤ 8 NTU (latest reading) **AND**
+- Streamflow ≤ 1000 ft³/s (latest reading)
 
 ### Orange Background (Caution)
-- Gage Height ≤ 4 ft for past hour **AND**
-- Turbidity between 8 and 9 NTU for past hour
+- Gage Height ≤ 4 ft (latest reading) **AND**
+- Turbidity between 8 and 9 NTU (latest reading)
   **OR**
-- Gage Height ≤ 4 ft for past hour **AND**
-- Streamflow between 1000 ft³/s and 3000 ft³/s for past hour
+- Gage Height ≤ 4 ft (latest reading) **AND**
+- Streamflow between 1000 ft³/s and 3000 ft³/s (latest reading)
   **OR**
-- Gage Height ≤ 4 ft for past hour **AND**
+- Gage Height ≤ 4 ft (latest reading) **AND**
 - Dam generation ≥ 5 MW is active or was recorded within the last 6 hours
 
 ### Red Background (Poor Fishing)
-- Gage Height > 4 ft for past hour **OR**
-- Turbidity ≥ 9 NTU for past hour **OR**
-- Streamflow ≥ 3000 ft³/s for past hour
+- Gage Height > 4 ft (latest reading) **OR**
+- Turbidity ≥ 9 NTU (latest reading) **OR**
+- Streamflow ≥ 3000 ft³/s (latest reading)
 
 ## Condition-Based Value Coloring
 
@@ -82,6 +83,20 @@ Latest values in summary cards are color-coded based on fishing condition thresh
 - 🟢 **Green (Good)**: 45 - 65°F
 - 🟠 **Orange (Caution)**: 40 - 45°F or 65 - 67°F
 - 🔴 **Red (Poor)**: < 40°F or > 67°F
+
+### Precipitation
+- 🟢 **Green (Good)**: ≤ 1 in
+- 🟠 **Orange (Caution)**: 1 - 2 in
+- 🔴 **Red (Poor)**: > 2 in
+
+### Specific Conductance
+- 🟢 **Green (Good)**: ≤ 800 µS/cm
+- 🟠 **Orange (Caution)**: 800 - 2000 µS/cm
+- 🔴 **Red (Poor)**: > 2000 µS/cm
+
+### Escherichia coli
+- 🟢 **Green (Good)**: ≤ 235 cfu/100ml
+- 🔴 **Red (Poor)**: > 235 cfu/100ml
 
 ### Dam Generation
 - 🟢 **Green (Good)**: < 5 MW with no high generation activity in last 8 hours
@@ -118,7 +133,10 @@ The dashboard shows comprehensive water quality and operational parameters:
 - **Stream Flow**: Discharge rate in cubic feet per second
 - **Gage Height**: Water level in feet
 - **Water Temperature**: Current temperature with trend analysis
-- **Turbidity**: Water clarity measurement
+- **Turbidity**: Water clarity measurement in Formazin Nephelometric Units (FNU)
+- **Precipitation**: Recent rainfall in inches
+- **Specific Conductance**: Water conductivity in microsiemens per centimeter (µS/cm)
+- **Escherichia coli**: Bacterial indicator in colony-forming units per 100 milliliters (cfu/100ml)
 - **pH Levels**: Water acidity/alkalinity
 - **Dissolved Oxygen**: Oxygen content in water
 - **Dam Generation**: Power output from Buford Dam in megawatts with condition-based coloring
