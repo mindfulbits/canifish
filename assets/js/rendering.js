@@ -384,9 +384,6 @@ function createSummaryCard(categoryName, measurements) {
     const title = document.createElement('div');
     title.className = 'summary-title';
     title.textContent = categoryName;
-    if (measurements.originalTitle) {
-        title.title = measurements.originalTitle;
-    }
     title.style.cursor = 'pointer';
     title.onclick = () => scrollToTable(categoryName);
     summaryInfo.appendChild(title);
@@ -403,11 +400,27 @@ function createSummaryCard(categoryName, measurements) {
     latestValue.innerHTML = text;
 
     if (isTemperature) {
-        latestValue.title = "Preferred range 45 - 65°F";
+        latestValue.title = "Ideal range 45 - 65°F (7 - 18°C)";
     }
 
     if (categoryName.toLowerCase().includes('gage height')) {
-        latestValue.title = "Preferred range 2 - 4 ft";
+        latestValue.title = "Ideal ≤ 4 ft";
+    }
+
+    if (categoryName.toLowerCase().includes('streamflow')) {
+        latestValue.title = "Ideal ≤ 1000 ft³/s";
+    }
+
+    if (categoryName.toLowerCase().includes('turbidity')) {
+        latestValue.title = "Ideal ≤ 8 NTU";
+    }
+
+    if (categoryName.toLowerCase().includes('escherichia coli')) {
+        latestValue.title = "Low risk ≤ 235 cfu/100ml";
+    }
+
+    if (categoryName.toLowerCase().includes('specific conductance')) {
+        latestValue.title = "Freshwater Streams 100-2,000 µS/cm";
     }
 
     // Add condition-based CSS class
@@ -709,10 +722,6 @@ function displayTable(categories) {
             title.textContent = categoryName;
             title.style.margin = '0';
             title.style.color = '#333';
-            if (measurements.originalTitle) {
-                title.title = measurements.originalTitle;
-                title.style.cursor = 'help';
-            }
 
             isCollapsed = UI.createTableHeaderWithToggle(title, categoryName, tableContainer);
 
