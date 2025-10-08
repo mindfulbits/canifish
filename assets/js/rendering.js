@@ -75,7 +75,7 @@ function displayUSACEData(data) {
             <span>${statusText}</span>
         `;
     } else {
-        currentStatus.innerHTML = '<span style="color: #666;">Status Unknown</span>';
+        currentStatus.innerHTML = '<span class="error">Status Unknown</span>';
     }
 }
 
@@ -170,7 +170,7 @@ function createDayTable(schedule, date, label, currentHour, isToday, key) {
 }
 
 function getDisplayInfo(measurements, isTemperature, preferFahrenheit) {
-    if (measurements.length === 0) return { text: '<span style="color: #dc3545;">N/A</span>', value: null };
+    if (measurements.length === 0) return { text: '<span  class="error">N/A</span>', value: null };
     let rawValue = measurements[0].value;
     if (isTemperature) {
         const fahrenheit = Utils.celsiusToFahrenheit(rawValue);
@@ -227,7 +227,7 @@ function getConditionClass(value, categoryName, isTemperature) {
 }
 
 function calculateTimeSince(measurements) {
-    if (measurements.length === 0) return '<span style="color: #dc3545;">N/A</span>';
+    if (measurements.length === 0) return '<span class="error">N/A</span>';
     const lastTime = new Date(measurements[0].datetime);
     const now = new Date();
     const diffMinutes = Math.floor((now - lastTime) / (1000 * 60));
@@ -817,7 +817,7 @@ function updateTimeSinceUpdate() {
 
     const currentText = lastUpdated.innerHTML || '';
     if (currentText.includes('Data unavailable')) {
-        UI.updateLastUpdated(`<span style="color: #dc3545;">Data unavailable - ${timeText}</span>`, updateTime);
+        UI.updateLastUpdated(`<span class="error">Data unavailable - ${timeText}</span>`, updateTime);
     } else {
         UI.updateLastUpdated(`Last updated: ${timeText}`, updateTime);
     }

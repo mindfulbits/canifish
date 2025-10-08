@@ -67,7 +67,7 @@ async function loadWaterData() {
     console.error('All water data endpoints failed', lastError);
     AppState.setCurrentData({});
 
-    UI.updateLastUpdated('<span style="color: #dc3545;">Data unavailable - just now</span>');
+    UI.updateLastUpdated('<span class="error">Data unavailable - just now</span>');
     UI.announceError('⚠️ Live data unavailable. Check your connection or retry shortly.');
     loading.style.display = 'none';
     UI.hideLoadingSkeletons();
@@ -135,7 +135,7 @@ async function loadUSACEData() {
         }
     } catch (error) {
         console.error('Failed to load USACE data', error);
-        currentStatus.innerHTML = '<span style="color: #dc3545;">⚠️ Data Unavailable</span>';
+        currentStatus.innerHTML = '<span class="error">⚠️ Data Unavailable</span>';
         usaceSection.style.display = 'block';
     } finally {
         if (usaceSkeleton) {
