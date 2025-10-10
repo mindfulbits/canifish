@@ -29,6 +29,7 @@ CanIFish is currently in **Alpha**. The landing header in `index.html` renders a
 - **Color-Coded Values**: Latest values and dam generation display in green (good), orange (caution), or red (poor) based on fishing conditions
 - **Interactive Filters**: Toggle visibility of different data categories
 - **Temperature Units**: Switch between Celsius and Fahrenheit
+- **Smart Timestamps**: Shows "Today, 3:45 PM", "Yesterday, 2:30 PM", or full date instead of relative time
 - **Latest Reading Logic**: All condition evaluations use the most recent measurement for immediate responsiveness
 
 ### 🌊 Comprehensive Water Data
@@ -112,6 +113,7 @@ Simply open `index.html` in any modern web browser. The dashboard will automatic
 3. Analyze conditions and apply intelligent fishing recommendations
 4. Display comprehensive data with trend analysis
 5. Auto-refresh all data hourly
+6. **Show timestamps as "Today, 3:45 PM" or "Yesterday, 2:30 PM" for recent data**
 
 ## Data Sources
 
@@ -149,7 +151,14 @@ The dashboard shows comprehensive water quality and operational parameters:
 │   ├── css/
 │   │   └── styles.css
 │   ├── js/
-│   │   └── app.js
+│   │   ├── constants.js
+│   │   ├── state.js
+│   │   ├── storage.js
+│   │   ├── utils.js
+│   │   ├── ui.js
+│   │   ├── data.js
+│   │   ├── rendering.js
+│   │   └── events.js
 │   └── icons/
 │       ├── apple-touch-icon.png
 │       ├── favicon-16x16.png
@@ -166,7 +175,15 @@ The dashboard shows comprehensive water quality and operational parameters:
 
 - `index.html` contains the full dashboard markup and links to all external assets.
 - `assets/css/styles.css` holds all layout, typography, and responsive rules.
-- `assets/js/app.js` manages data fetching, state handling, and UI interactions.
+- `assets/js/` contains modular JavaScript files for different functionality:
+  - `constants.js` - Application constants and configuration
+  - `state.js` - Global state management
+  - `storage.js` - Local storage utilities
+  - `utils.js` - Helper functions and utilities
+  - `ui.js` - User interface management
+  - `data.js` - API data fetching and processing
+  - `rendering.js` - DOM rendering and display logic
+  - `events.js` - Event handling and user interactions
 - `assets/icons/` stores favicon and installability icons referenced by `index.html` and `site.webmanifest`.
 - `site.webmanifest` exposes install metadata for browsers and devices.
 - `docs/app-logic.md` documents the fishing condition logic, value coloring thresholds, and application behavior.
@@ -181,6 +198,7 @@ The dashboard shows comprehensive water quality and operational parameters:
 - Direct API access with CORS proxy fallbacks
 - Demo data mode when live API is unavailable
 - Progressive web app manifest via `site.webmanifest`, aligned with icons in `assets/icons/`
+- **Smart Timestamp Logic**: Displays "Today", "Yesterday", or full date instead of updating every minute
 
 ## API Access & Reliability
 
@@ -195,7 +213,7 @@ The dashboard prioritizes direct API access to official data sources, with autom
 - **USACE Dam Data**: Direct access to GitHub-hosted generation schedules
 - **Proxy Services**: AllOrigins, CORS Proxy, and CORS Anywhere as reliability backups
 
-## Information Source Credits
+## Source Credits
 Sources for information used in the application:
 - E.coli: [BacteriALERT Realtime Monitoring](https://ga.water.usgs.gov/bacteria/)
 - Specific Conductance (µS/cm): [What Is The Typical Water Conductivity Range? | Atlas Scientific](https://atlas-scientific.com/blog/water-conductivity-range/)
