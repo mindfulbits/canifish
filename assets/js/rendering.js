@@ -228,8 +228,34 @@ function getConditionClass(value, categoryName, isTemperature) {
 
 function calculateTimeSince(measurements) {
     if (measurements.length === 0) return '<span class="error">N/A</span>';
-    const lastTime = measurements[0].datetime;
-    return Utils.formatDateTime(lastTime);
+    const lastTime = new Date(measurements[0].datetime);
+    const now = new Date();
+
+    // Check if measurement is from today
+    const isToday = lastTime.toDateString() === now.toDateString();
+
+    // Check if measurement is from yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = lastTime.toDateString() === yesterday.toDateString();
+
+    let timePrefix = '';
+    if (isToday) {
+        timePrefix = 'Today';
+    } else if (isYesterday) {
+        timePrefix = 'Yesterday';
+    } else {
+        return Utils.formatDateTime(measurements[0].datetime);
+    }
+
+    // Format time part only (HH:MM AM/PM)
+    const hours = lastTime.getHours();
+    const minutes = lastTime.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const timeString = `${displayHours}:${minutes} ${ampm}`;
+
+    return `${timePrefix}, ${timeString}`;
 }
 
 function calculateTrend(measurements, isTemperature, preferFahrenheit) {
