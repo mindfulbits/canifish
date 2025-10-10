@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadWaterData();
     loadUSACEData();
-    setInterval(updateTimeSinceUpdate, 60 * 1000);
     scheduleHourlyRefresh();
 });
 
