@@ -846,9 +846,33 @@ function updateTimeSinceUpdate() {
 
     const now = new Date();
     const updateDate = new Date(parseInt(updateTime, 10));
-    const diffMinutes = Math.floor((now - updateDate) / (1000 * 60));
 
-    let timeText = Utils.formatTimeAgo(diffMinutes);
+    // Check if update is from today
+    const isToday = updateDate.toDateString() === now.toDateString();
+
+    // Check if update is from yesterday
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = updateDate.toDateString() === yesterday.toDateString();
+
+    let timeText = '';
+    if (isToday) {
+        timeText = 'Today';
+    } else if (isYesterday) {
+        timeText = 'Yesterday';
+    } else {
+        timeText = Utils.formatDateTime(updateDate.toISOString());
+    }
+
+    // Format time part for today/yesterday (HH:MM AM/PM)
+    if (isToday || isYesterday) {
+        const hours = updateDate.getHours();
+        const minutes = updateDate.getMinutes().toString().padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        const timeString = `${displayHours}:${minutes} ${ampm}`;
+        timeText = `${timeText}, ${timeString}`;
+    }
 
     const currentText = lastUpdated.innerHTML || '';
     if (currentText.includes('Data unavailable')) {
