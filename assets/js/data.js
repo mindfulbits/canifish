@@ -53,7 +53,7 @@ async function loadWaterData() {
             displayTable(categories);
             checkFishingConditions(categories, AppState.getUsaceData());
 
-            UI.updateLastUpdated('Last updated: just now');
+            UI.updateLastUpdated('Last updated: Today, ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }));
 
             loading.style.display = 'none';
             UI.hideLoadingSkeletons();
@@ -67,7 +67,7 @@ async function loadWaterData() {
     console.error('All water data endpoints failed', lastError);
     AppState.setCurrentData({});
 
-    UI.updateLastUpdated('<span class="error">Data unavailable - just now</span>');
+    UI.updateLastUpdated('<span class="error">Data unavailable - Today, ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) + '</span>');
     UI.announceError('⚠️ Live data unavailable. Check your connection or retry shortly.');
     loading.style.display = 'none';
     UI.hideLoadingSkeletons();
