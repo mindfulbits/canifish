@@ -228,16 +228,8 @@ function getConditionClass(value, categoryName, isTemperature) {
 
 function calculateTimeSince(measurements) {
     if (measurements.length === 0) return '<span class="error">N/A</span>';
-    const lastTime = new Date(measurements[0].datetime);
-    const now = new Date();
-    const diffMinutes = Math.floor((now - lastTime) / (1000 * 60));
-    if (diffMinutes < 60) {
-        return `${diffMinutes} minutes ago`;
-    } else {
-        const diffHours = Math.floor(diffMinutes / 60);
-        const remainingMinutes = diffMinutes % 60;
-        return `${diffHours}h ${remainingMinutes}m ago`;
-    }
+    const lastTime = measurements[0].datetime;
+    return Utils.formatDateTime(lastTime);
 }
 
 function calculateTrend(measurements, isTemperature, preferFahrenheit) {
